@@ -1,0 +1,51 @@
+import React from 'react'
+import { motion } from 'framer-motion'
+
+const solutions = [
+  { id: 'sol-training', title: 'AI Training Infrastructure', desc: 'Multi-node clusters sized for foundation and domain-model pre-training and continued training runs. From 8 to thousands of GPUs.', icon: '↗' },
+  { id: 'sol-inference', title: 'AI Inference Infrastructure', desc: 'Latency- and throughput-optimized capacity for production inference at scale. Autoscaling and cost-optimized.', icon: '⇄' },
+  { id: 'sol-private-cloud', title: 'Private AI Cloud', desc: 'Dedicated, single-tenant AI infrastructure for organizations that cannot share capacity. Sovereign options.', icon: '◧' },
+  { id: 'sol-hpc', title: 'HPC', desc: 'High-performance computing infrastructure for simulation, research and scientific workloads with InfiniBand.', icon: 'Σ' },
+  { id: 'sol-sovereign', title: 'Sovereign AI Infrastructure', desc: 'Locally hosted, India-resident and regionally compliant AI infrastructure for regulated buyers and government.', icon: '◈' },
+  { id: 'sol-dedicated', title: 'Dedicated GPU Clusters', desc: 'See Dedicated AI Clusters for full architecture detail: HGX, NVLink, 200/400/800G, storage, K8s/Slurm.', icon: '⬡', link: '#sol-clusters' },
+]
+
+export default function Solutions() {
+  return (
+    <section id="solutions" className="py-20 lg:py-28">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
+        <div className="max-w-[640px]">
+          <div className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.14em] uppercase text-accent mb-4">
+            <span className="w-6 h-px bg-accent" /> Solutions
+          </div>
+          <h2 className="font-display font-bold text-[32px] lg:text-[42px] leading-[1.1] tracking-[-0.02em]">
+            Built around the workload, not one GPU generation.
+          </h2>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-12">
+          {solutions.map((s, i) => (
+            <motion.div
+              key={s.id}
+              id={s.id}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.06 }}
+              className="rounded-2xl bg-surface border border-border p-6 lg:p-7 hover:border-border2 hover:bg-surface2 transition-all group scroll-mt-24"
+            >
+              <div className="w-10 h-10 rounded-xl bg-surface3 border border-border flex items-center justify-center text-[16px] text-faint group-hover:text-accent group-hover:border-accent/20 transition-colors mb-4">
+                {s.icon}
+              </div>
+              <h3 className="font-display font-semibold text-[17px] leading-tight">{s.title}</h3>
+              <p className="text-[14px] leading-[1.5] text-muted mt-2.5">
+                {s.desc}
+                {s.link && <a href={s.link} className="text-accent hover:underline ml-1">View details →</a>}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
