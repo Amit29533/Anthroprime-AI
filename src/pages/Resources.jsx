@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { ArrowUpRight, BarChart3, BookOpen, LineChart, Boxes } from 'lucide-react'
 import { PageHero, Reveal, SectionHead } from '../components/ui'
 import { GPUS, GPU_ORDER } from '../data/gpus'
-import { marketSummary, MARKET_DATA, PROVIDER_META } from '../data/marketPricing'
+import { capacitySummary, PROVIDER_META } from '../data/capacity'
 import FinalCTA from '../components/FinalCTA'
 
 const COMPARE_ROWS = [
@@ -87,57 +87,60 @@ function CompareTool() {
   )
 }
 
-const ECON_LABEL = { h100: 'H100', h200: 'H200', b200: 'B200 / GB200', a100: 'A100', l40s: 'L40S', mi300x: 'Ent. Accelerators' }
+const FAMILY_LABEL = { h100: 'H100', h200: 'H200', b200: 'B200 / GB200', a100: 'A100', l40s: 'L40S', mi300x: 'Ent. Accelerators' }
 
-function Economics() {
-  const summary = marketSummary().filter(s => ['h100', 'h200', 'b200', 'a100', 'l40s'].includes(s.family))
-  const max = Math.max(...summary.map(s => s.median))
+function Coverage() {
+  const rows = capacitySummary()
+    .filter(s => ['h100', 'h200', 'b200', 'a100', 'l40s'].includes(s.family))
+  const max = Math.max(...rows.map(s => s.providerCount))
+  const totalProviders = Object.keys(PROVIDER_META).length
 
   return (
-    <div id="economics" className="scroll-mt-28 rounded-[20px] bg-surface border border-border p-6 lg:p-8">
+    <div id="coverage" className="scroll-mt-28 rounded-[20px] bg-surface border border-border p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="font-display font-semibold text-[17px]">GPU Pricing Economics · {MARKET_DATA.asOf}</div>
-          <div className="font-mono text-[12px] text-faint mt-0.5">Median market $/GPU/hr by family — commitment and configuration move these numbers significantly.</div>
+          <div className="font-display font-semibold text-[17px]">Network Coverage by Accelerator</div>
+          <div className="font-mono text-[12px] text-faint mt-0.5">How many providers in our network offer each family — breadth of choice per mandate.</div>
         </div>
         <Link to="/marketplace" className="inline-flex items-center gap-1.5 font-mono text-[12px] text-accent hover:underline shrink-0">Full marketplace <ArrowUpRight className="w-3.5 h-3.5" /></Link>
       </div>
 
       <div className="mt-6 space-y-4">
-        {summary.map(s => {
-          const pm = PROVIDER_META[s.cheapest?.provider]
-          return (
-            <div key={s.family} className="grid grid-cols-[70px_1fr_150px] sm:grid-cols-[90px_1fr_220px] items-center gap-4">
-              <div className="font-mono font-bold text-[13.5px]">{ECON_LABEL[s.family] || s.family}</div>
-              <div className="h-7 rounded-lg bg-bg border border-border overflow-hidden relative">
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${Math.max(6, (s.median / max) * 100)}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.8, ease: 'easeOut' }}
-                  className="h-full rounded-lg bg-gradient-to-r from-accent/70 to-accent/30"
-                />
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[11.5px] font-bold text-text">${s.median.toFixed(2)}/hr median</span>
-              </div>
-              <div className="font-mono text-[10.5px] text-faint leading-tight hidden sm:block">
-                low ${s.min.toFixed(2)} ({pm?.name || s.cheapest?.provider}) · {s.providerCount} providers
-              </div>
+        {rows.map(s => (
+          <div key={s.family} className="grid grid-cols-[70px_1fr_150px] sm:grid-cols-[90px_1fr_220px] items-center gap-4">
+            <div className="font-mono font-bold text-[13.5px]">{FAMILY_LABEL[s.family] || s.family}</div>
+            <div className="h-7 rounded-lg bg-bg border border-border overflow-hidden relative">
+              <motion.div
+                initial={{ width: 0 }}
+                whileInView={{ width: `${Math.max(6, (s.providerCount / max) * 100)}%` }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+                className="h-full rounded-lg bg-gradient-to-r from-accent/70 to-accent/30"
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[11.5px] font-bold text-text">{s.providerCount} providers</span>
             </div>
-          )
-        })}
+            <div className="font-mono text-[10.5px] text-faint leading-tight hidden sm:block">
+              {s.count} configurations · up to {s.vram} GB per GPU
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="mt-6 pt-5 border-t border-border grid sm:grid-cols-3 gap-4">
         {[
-          ['Commitment', '1–3 year reservations typically beat on-demand list pricing by a wide margin. We model the tradeoff.'],
-          ['Configuration', 'Interconnect, storage tier and node shape change effective $/useful-FLOP more than list price does.'],
-          ['Geography', 'The same GPU carries different prices in different regions — sourcing geography is a pricing lever.'],
+          ['Commitment', 'On-demand, reserved, bare-metal and private-cloud terms each suit a different horizon. We match the model to your roadmap.'],
+          ['Configuration', 'Interconnect, storage tier and node shape change effective throughput more than the badge on the GPU does.'],
+          ['Geography', 'The same accelerator is available in some regions and scarce in others — sourcing geography is an availability lever.'],
         ].map(([t, d]) => (
           <div key={t}>
             <div className="font-display font-semibold text-[13.5px]">{t}</div>
             <div className="text-[12px] leading-[1.55] text-muted mt-1">{d}</div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-6 font-mono text-[11px] text-faint">
+        {totalProviders} providers tracked across our infrastructure network · availability and commercials verified per mandate.
       </div>
     </div>
   )
@@ -147,7 +150,7 @@ export default function Resources() {
   const guides = [
     { icon: BookOpen, tag: 'In Progress', title: 'AI Infrastructure Guides', desc: 'Choosing between on-demand, reserved, bare-metal and private cloud — with decision trees from live mandates.' },
     { icon: Boxes, tag: 'In Progress', title: 'Architecture Guides', desc: 'Network, storage and orchestration patterns for large-scale training and inference clusters.' },
-    { icon: BarChart3, tag: 'In Progress', title: 'Benchmark Library', desc: 'Workload-specific throughput and cost benchmarks, published as mandates allow.' },
+    { icon: BarChart3, tag: 'In Progress', title: 'Benchmark Library', desc: 'Workload-specific throughput benchmarks, published as mandates allow.' },
     { icon: LineChart, tag: 'Coming Soon', title: 'Blog', desc: 'Field notes from the capacity desk — sourcing, verification and deployment learnings.' },
   ]
 
@@ -157,13 +160,13 @@ export default function Resources() {
         crumb="Resources"
         title="Compare first."
         highlight="Then decide."
-        sub="Datasheet-accurate GPU comparisons, live market pricing economics, and the guides we build from real mandates."
+        sub="Datasheet-accurate GPU comparisons, network coverage by accelerator, and the guides we build from real mandates."
       />
 
       <section className="pb-20 lg:pb-28">
         <div className="max-w-[1280px] mx-auto px-6 lg:px-8 space-y-10">
           <Reveal><CompareTool /></Reveal>
-          <Reveal><Economics /></Reveal>
+          <Reveal><Coverage /></Reveal>
 
           <div id="guides" className="scroll-mt-28">
             <SectionHead tag="Guides & Writing" title="Knowledge, built from live mandates." />

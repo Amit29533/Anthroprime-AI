@@ -5,8 +5,8 @@ const whys = [
   { n: '01', title: 'Provider-Agnostic', desc: "We aren't restricted to one cloud or infrastructure provider. We search across the market for your best fit." },
   { n: '02', title: 'Global Sourcing', desc: 'We search across multiple infrastructure partners and geographies — India, SEA, Middle East, Europe, North America.' },
   { n: '03', title: 'Enterprise Scale', desc: 'From individual GPU servers to hundreds/thousands of GPUs. 8 to 8,000+ handled with same rigor.' },
-  { n: '04', title: 'Architecture Expertise', desc: 'We understand compute, networking, storage and AI workloads — not merely GPU pricing.' },
-  { n: '05', title: 'Commercial Optimization', desc: 'We help customers compare different infrastructure and commitment models with TCO analysis.' },
+  { n: '04', title: 'Architecture Expertise', desc: 'We understand compute, networking, storage and AI workloads — not merely GPU supply.' },
+  { n: '05', title: 'Commercial Negotiation', desc: 'We help customers compare infrastructure and commitment models, then negotiate terms with providers on their behalf.' },
   { n: '06', title: 'End-to-End Execution', desc: 'Sourcing → Architecture → Contracting → Deployment → Management. One partner, accountable.' },
 ]
 

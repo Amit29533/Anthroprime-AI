@@ -17,12 +17,12 @@ import NotFound from './pages/NotFound'
  *
  * /                      Home (hero, aggregation, clusters, how-it-works,
  *                          global network, services, who-we-serve, why-us)
- * /marketplace           GPU capacity marketplace (live market reference data)
+ * /marketplace           GPU capacity marketplace (configurations tracked across the network)
  * /gpu/:slug             GPU detail pages (h100 h200 b200 gb200 a100 l40s)
  * /solutions             Solutions index
  * /solutions/:slug       Solution detail pages
  * /services              Services (sourcing, advisory, deployment, managed, security)
- * /resources             GPU comparison + pricing economics + guides
+ * /resources             GPU comparison + network coverage + guides
  * /about                 About + Partners
  * /contact               Contact
  * /find-capacity         Find GPU Capacity form (primary CTA destination)

@@ -32,10 +32,10 @@ needPages.forEach(p => assert(`pages/${p}.jsx exists`, fs.existsSync(path.join(p
 assert('components/Layout.jsx exists', fs.existsSync(path.join(src, 'components/Layout.jsx')))
 assert('components/Globe3D.jsx exists', fs.existsSync(path.join(src, 'components/Globe3D.jsx')))
 assert('data/gpus.js exists', fs.existsSync(path.join(data, 'gpus.js')))
-assert('data/marketPricing.js exists', fs.existsSync(path.join(data, 'marketPricing.js')))
+assert('data/capacity.js exists', fs.existsSync(path.join(data, 'capacity.js')))
 assert('data/solutions.js exists', fs.existsSync(path.join(data, 'solutions.js')))
 assert('data/services.js exists', fs.existsSync(path.join(data, 'services.js')))
-assert('market-data refresh script exists', fs.existsSync(path.join(root, 'scripts/fetch-market-data.mjs')))
+assert('no market-pricing dataset is shipped', !fs.existsSync(path.join(data, 'marketPricing.js')))
 
 // ---------- routing ----------
 const app = read(path.join(src, 'App.jsx'))
@@ -85,13 +85,43 @@ assert('NVLink generations documented', gpus.includes('900 GB/s') && gpus.includ
 assert('InfiniBand 200/400/800 documented', gpus.includes('400 Gb/s') && gpus.includes('800 Gb/s') && gpus.includes('200 Gb/s'))
 assert('Node/reference configs present', gpus.includes('nodeConfig'))
 
-// ---------- marketplace data ----------
-const market = read(path.join(data, 'marketPricing.js'))
-assert('marketplace data has attribution (CC BY 4.0)', market.includes('CC BY 4.0'))
-assert('marketplace data has snapshot date', /asOf:\s*'20\d\d-\d\d-\d\d'/.test(market))
-assert('marketplace data has provider metadata', market.includes('PROVIDER_META'))
-assert('marketplace page has filter controls', read(path.join(pages, 'Marketplace.jsx')).includes('setKind') && read(path.join(pages, 'Marketplace.jsx')).includes('setSort'))
-assert('marketplace honesty note present', read(path.join(pages, 'Marketplace.jsx')).includes('not Anthroprime inventory'))
+// ---------- capacity data (price-free) ----------
+const capacity = read(path.join(data, 'capacity.js'))
+assert('capacity data has provider metadata', capacity.includes('PROVIDER_META'))
+assert('capacity data exposes family aggregation', capacity.includes('capacitySummary') && capacity.includes('offersForFamily'))
+const mkt = read(path.join(pages, 'Marketplace.jsx'))
+assert('marketplace page has filter controls', mkt.includes('setKind') && mkt.includes('setSort'))
+assert('marketplace honesty note present', mkt.includes('not Anthroprime inventory'))
+assert('marketplace quotes commercials on request', mkt.includes('Price on request'))
+
+// ---------- no pricing anywhere in the app ----------
+const srcFiles = []
+const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).forEach(e => {
+  const full = path.join(dir, e.name)
+  if (e.isDirectory()) walk(full)
+  else if (/\.(jsx?|mjs|html|json)$/.test(e.name)) srcFiles.push(full)
+})
+walk(src)
+walk(path.join(root, 'public'))
+srcFiles.push(path.join(root, 'index.html'), path.join(root, 'netlify.toml'))
+const appText = srcFiles.map(read).join('\n')
+const PRICE_PATTERNS = [
+  [/\$\s?\d/, 'dollar amounts'],
+  [/\/GPU\/hr|per hour|\/hr\b/i, 'hourly rates'],
+  [/\bTCO\b/, 'TCO'],
+  [/(?<!no )\blist price/i, 'list price'],
+  [/price-per-token|cost-per-token/i, 'cost-per-token'],
+  [/pricing economics|market reference pricing|market pricing/i, 'pricing sections'],
+  [/gpurentalprices|gpu-rental-prices/i, 'pricing dataset attribution'],
+]
+PRICE_PATTERNS.forEach(([re, label]) => assert(`no ${label} in the app`, !re.test(appText)))
+
+// ---------- hero typewriter ----------
+assert('Home hero headline uses the typewriter', /<Typewriter/.test(read(path.join(pages, 'Home.jsx'))))
+assert('Typewriter component exists', read(path.join(src, 'components/ui.jsx')).includes('export function Typewriter'))
+assert('Typewriter respects reduced motion', read(path.join(src, 'components/ui.jsx')).includes('prefers-reduced-motion'))
+assert('Typewriter keeps the full headline for a11y/SEO', read(path.join(src, 'components/ui.jsx')).includes('sr-only'))
+assert('caret keyframes defined in css', read(path.join(src, 'index.css')).includes('caret-blink'))
 
 // ---------- capacity form ----------
 const find = read(path.join(pages, 'FindCapacity.jsx'))

@@ -11,12 +11,12 @@ Vite + React 18 + Tailwind CSS 3 + Framer Motion + **react-router-dom** + **thre
 | Route | Page |
 |---|---|
 | `/` | Home — 3D network globe hero, GPU strip, aggregation, clusters, how-it-works, global network, services, who-we-serve, why-us, final CTA |
-| `/marketplace` | GPU capacity marketplace — live market reference pricing, filters (family/type/search/sort), per-provider offers |
-| `/gpu/:slug` | GPU detail pages: `h100` `h200` `b200` `gb200` `a100` `l40s` — datasheet specs, variants, reference node configs, market pricing band |
+| `/marketplace` | GPU capacity marketplace — accelerator families, configurations and deployment models, filters (family/type/search/sort), per-provider offers. Commercials are quoted per mandate |
+| `/gpu/:slug` | GPU detail pages: `h100` `h200` `b200` `gb200` `a100` `l40s` — datasheet specs, variants, reference node configs, network availability panel |
 | `/solutions` | Solutions index (6 solutions) |
 | `/solutions/:slug` | Solution detail: `training` `inference` `clusters` `private-cloud` `hpc` `sovereign` |
 | `/services` | Services — GPU Capacity Sourcing, Advisory, Cluster Deployment, Managed AI Infrastructure, Security (anchored) |
-| `/resources` | Interactive GPU comparison + pricing economics + guides |
+| `/resources` | Interactive GPU comparison + network coverage by accelerator + guides |
 | `/about` | About + Partners (NDA disclosure policy) |
 | `/contact` | Contact (WhatsApp / email / response expectations) |
 | `/find-capacity` | Find GPU Capacity form (primary CTA destination; accepts prefill state from marketplace/GPU pages) |
@@ -25,9 +25,10 @@ Vite + React 18 + Tailwind CSS 3 + Framer Motion + **react-router-dom** + **thre
 ### Data layer (`src/data/`)
 
 - **`gpus.js`** — GPU spec database from NVIDIA public datasheets: memory sizes, bandwidth, FP64/FP32/TF32/FP16/FP8/FP4 TFLOPS, NVLink generations (900 GB/s / 1.8 TB/s), TDP, MIG, form factors, and HGX/DGX-class reference node configurations.
-- **`marketPricing.js`** — market reference pricing snapshot sourced from the open **gpu-rental-prices** dataset ([github.com/adriannutiu/gpu-rental-prices](https://github.com/adriannutiu/gpu-rental-prices), CC BY 4.0, live at gpurentalprices.com). Clearly labelled as third-party list prices — never Anthroprime inventory.
-- **`scripts/fetch-market-data.mjs`** — runs on `npm run build`: refreshes the snapshot from the upstream dataset; falls back to the committed snapshot if the fetch fails.
+- **`capacity.js`** — the accelerator families, configurations and deployment models tracked across our infrastructure network. **Deliberately price-free**: availability, configuration, geography and term all move commercials, so they are quoted per mandate and verified at the time of request.
 - `solutions.js`, `services.js` — page content.
+
+> **No pricing is published anywhere on the site.** The marketplace shows "Price on request" and the desk quotes per mandate. `npm test` guards this (it fails if a dollar amount, hourly rate, TCO claim or pricing reference reappears in `src/`, `public/`, `index.html` or `netlify.toml`).
 
 ### 3D & motion
 
@@ -39,16 +40,15 @@ Vite + React 18 + Tailwind CSS 3 + Framer Motion + **react-router-dom** + **thre
 - No ownership claims ("we operate thousands of GPUs" etc. are test-guarded).
 - Accurate language: *"Access GPU capacity through our infrastructure network"* / *"We source dedicated GPU infrastructure across multiple providers and regions."*
 - Partner names never published; disclosure under NDA.
-- Market pricing always attributed, dated and labelled as reference data.
+- No rates, price tables or cost claims are published; commercials are quoted per mandate.
 
 ## Local development
 
 ```bash
 npm install
 npm run dev            # http://localhost:5173
-npm run fetch:market   # refresh pricing snapshot manually
-npm run build          # refresh snapshot + production build
-npm test               # 76 alignment/content/accuracy checks
+npm run build          # production build
+npm test               # 100 alignment/content/accuracy checks
 ```
 
 ## Netlify deployment
@@ -59,7 +59,7 @@ npm test               # 76 alignment/content/accuracy checks
 
 ## Attribution
 
-Market reference pricing: [gpu-rental-prices](https://github.com/adriannutiu/gpu-rental-prices) by Adrian Nutiu, CC BY 4.0 — [gpurentalprices.com](https://gpurentalprices.com).
+Provider names and logos shown in the marketplace are the property of their respective owners and are listed only as points of reference for capacity we track. No partner terms are published.
 
 ---
 © 2026 Anthroprime Technology Private Limited

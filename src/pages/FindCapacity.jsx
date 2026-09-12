@@ -109,7 +109,7 @@ export default function FindCapacity() {
               <div className="space-y-4">
                 {[
                   ['01', 'Feasibility read', 'We confirm availability across the network within 2–5 days.'],
-                  ['02', 'Comparable shortlist', 'Architecture, geography, deployment model and pricing — side by side.'],
+                  ['02', 'Comparable shortlist', 'Architecture, geography, deployment model and commercial terms — side by side.'],
                   ['03', 'You contract direct', 'With the chosen provider. We coordinate deployment and stay on as your desk.'],
                 ].map(([n, t, d]) => (
                   <div key={n} className="flex gap-3.5">

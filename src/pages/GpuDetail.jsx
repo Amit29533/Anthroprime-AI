@@ -4,59 +4,63 @@ import { motion } from 'framer-motion'
 import { ArrowUpRight, ArrowLeft, ArrowRight, Check, Cpu } from 'lucide-react'
 import { PageHero, Reveal, SectionHead, CTAPrimary, CTAGhost, Tilt } from '../components/ui'
 import { GPUS, GPU_ORDER, gpuBySlug } from '../data/gpus'
-import { offersForFamily, PROVIDER_META, MARKET_DATA } from '../data/marketPricing'
+import { offersForFamily, PROVIDER_META } from '../data/capacity'
 import { useTheme } from '../theme'
 import FinalCTA from '../components/FinalCTA'
 
 const FAMILY_MAP = { h100: 'h100', h200: 'h200', b200: 'b200', gb200: 'b200', a100: 'a100', l40s: 'l40s' }
 
-function PriceBand({ slug }) {
+function AvailabilityPanel({ slug }) {
   const fam = FAMILY_MAP[slug]
   const offers = offersForFamily(fam)
   if (!offers.length) return null
-  const sorted = [...offers].sort((a, b) => a.usd - b.usd)
-  const firm = sorted.filter(o => o.kind === 'on-demand')
-  const min = sorted[0]
-  const firmMin = firm[0] || min
-  const max = sorted[sorted.length - 1]
-  const providers = new Set(offers.map(o => o.provider)).size
+  const providers = [...new Set(offers.map(o => o.provider))]
+  const kinds = [...new Set(offers.map(o => o.kind))]
+  const variants = [...new Set(offers.map(o => o.variant))]
+
+  const kindLabel = {
+    'on-demand': 'On-demand',
+    'spot': 'Spot',
+    'serverless': 'Serverless',
+    'secure': 'Secure',
+    'community': 'Community',
+  }
 
   return (
     <Reveal className="mt-16">
       <div className="rounded-[20px] bg-surface border border-border overflow-hidden">
         <div className="px-6 lg:px-8 py-5 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="font-display font-semibold text-[17px]">Market reference pricing</div>
+            <div className="font-display font-semibold text-[17px]">Availability across our infrastructure network</div>
             <div className="font-mono text-[11.5px] text-faint mt-0.5">
-              Public list prices across {providers} providers · snapshot {MARKET_DATA.asOf} ·{' '}
-              <a href={MARKET_DATA.source.live} target="_blank" rel="noopener" className="text-accent hover:underline">gpurentalprices.com</a> (CC BY 4.0)
+              Configurations we track across {providers.length} providers · verified per mandate, never assumed
             </div>
           </div>
-          <Link to={`/marketplace?gpu=${fam}`} className="inline-flex items-center gap-1.5 font-mono text-[12px] text-accent hover:underline shrink-0">
-            All {offers.length} offers in marketplace <ArrowRight className="w-3.5 h-3.5" />
+          <Link to={`/find-capacity`} state={{ gpu: slug === 'gb200' ? 'B200 / GB200' : GPUS[slug].name }} className="inline-flex items-center gap-1.5 font-mono text-[12px] text-accent hover:underline shrink-0">
+            Request availability & commercials <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         <div className="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border border-b border-border">
           <div className="p-5">
-            <div className="font-mono text-[10.5px] uppercase tracking-wide text-faint">Lowest observed</div>
-            <div className="font-display font-bold text-[24px] mt-1">${min.usd.toFixed(2)}<span className="text-[13px] text-faint font-medium">/GPU/hr</span></div>
-            <div className="font-mono text-[11px] text-faint mt-0.5">{PROVIDER_META[min.provider]?.name || min.provider} · {min.kind}</div>
+            <div className="font-mono text-[10.5px] uppercase tracking-wide text-faint">Configurations tracked</div>
+            <div className="font-display font-bold text-[24px] mt-1">{offers.length}</div>
+            <div className="font-mono text-[11px] text-faint mt-0.5">{variants.length} variants</div>
           </div>
           <div className="p-5">
-            <div className="font-mono text-[10.5px] uppercase tracking-wide text-faint">Firm (on-demand) from</div>
-            <div className="font-display font-bold text-[24px] mt-1">${firmMin.usd.toFixed(2)}<span className="text-[13px] text-faint font-medium">/GPU/hr</span></div>
-            <div className="font-mono text-[11px] text-faint mt-0.5">{PROVIDER_META[firmMin.provider]?.name || firmMin.provider}</div>
+            <div className="font-mono text-[10.5px] uppercase tracking-wide text-faint">Providers in network</div>
+            <div className="font-display font-bold text-[24px] mt-1">{providers.length}</div>
+            <div className="font-mono text-[11px] text-faint mt-0.5">{providers.slice(0, 2).map(p => PROVIDER_META[p]?.name || p).join(' · ')}</div>
           </div>
           <div className="p-5">
-            <div className="font-mono text-[10.5px] uppercase tracking-wide text-faint">Range observed</div>
-            <div className="font-display font-bold text-[24px] mt-1">${min.usd.toFixed(2)}–{max.usd.toFixed(2)}</div>
-            <div className="font-mono text-[11px] text-faint mt-0.5">Spot to hyperscaler on-demand</div>
+            <div className="font-mono text-[10.5px] uppercase tracking-wide text-faint">Deployment models</div>
+            <div className="font-display font-bold text-[24px] mt-1">{kinds.length}</div>
+            <div className="font-mono text-[11px] text-faint mt-0.5">{kinds.map(k => kindLabel[k] || k).join(' · ')}</div>
           </div>
         </div>
 
         <div className="px-6 lg:px-8 py-4 font-mono text-[11px] text-faint leading-[1.6]">
-          Reference data only — third-party list prices, not Anthroprime inventory or quotes. Actual terms depend on configuration, duration and geography; we negotiate them on your behalf.
+          We publish no rates: availability, configuration, geography and contract term all move the numbers, so commercials are quoted per mandate and negotiated on your behalf. Tell us the requirement and we verify it against the network.
         </div>
       </div>
     </Reveal>
@@ -87,7 +91,7 @@ export default function GpuDetail() {
       >
         <div className="flex flex-wrap items-center gap-3">
           <CTAPrimary to="/find-capacity" state={{ gpu: gpu.name }}>Find {gpu.name} Capacity</CTAPrimary>
-          <CTAGhost to="/marketplace">Market pricing</CTAGhost>
+          <CTAGhost to="/marketplace">Availability & capacity</CTAGhost>
           <span className="font-mono text-[11px] px-3 py-1.5 rounded-full bg-surface border border-border text-faint">{gpu.status}</span>
         </div>
       </PageHero>
@@ -230,7 +234,7 @@ export default function GpuDetail() {
         </div>
 
         <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
-          <PriceBand slug={slug} />
+          <AvailabilityPanel slug={slug} />
         </div>
       </section>
 

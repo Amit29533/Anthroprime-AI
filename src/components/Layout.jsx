@@ -18,7 +18,7 @@ const PAGE_META = {
   },
   '/marketplace': {
     title: 'GPU Capacity Marketplace — Anthroprime.ai',
-    desc: 'Live market reference pricing for H100, H200, B200, GB200, A100, L40S and enterprise accelerators across leading cloud providers.',
+    desc: 'Accelerator families, configurations and deployment models tracked across our global GPU infrastructure network — availability and commercials quoted per mandate.',
   },
   '/solutions': {
     title: 'AI Infrastructure Solutions — Anthroprime.ai',
@@ -29,8 +29,8 @@ const PAGE_META = {
     desc: 'GPU capacity sourcing, AI infrastructure advisory, cluster deployment, managed infrastructure and security.',
   },
   '/resources': {
-    title: 'GPU Comparison & Pricing — Anthroprime.ai',
-    desc: 'Datasheet-accurate GPU comparisons, live market pricing economics and AI infrastructure guides.',
+    title: 'GPU Comparison & Resources — Anthroprime.ai',
+    desc: 'Datasheet-accurate GPU comparisons, network coverage by accelerator and AI infrastructure guides.',
   },
   '/about': {
     title: 'About — Anthroprime.ai',
@@ -59,7 +59,7 @@ function useDocumentMeta() {
     } else if (seg[0] === 'gpu' && seg[1]) {
       const g = GPUS[seg[1]]
       if (g) {
-        title = `${g.full} — Specs, Pricing & Capacity | Anthroprime.ai`
+        title = `${g.full} — Specs & Capacity | Anthroprime.ai`
         desc = g.desc
       }
     } else if (seg[0] === 'solutions' && seg[1]) {
@@ -107,9 +107,9 @@ const nav = [
     label: 'Resources',
     children: [
       { label: 'GPU Comparison', to: '/resources#comparison' },
-      { label: 'GPU Marketplace & Pricing', to: '/marketplace' },
+      { label: 'GPU Marketplace', to: '/marketplace' },
+      { label: 'Network Coverage', to: '/resources#coverage' },
       { label: 'AI Infrastructure Guides', to: '/resources#guides' },
-      { label: 'GPU Pricing / Economics', to: '/resources#economics' },
       { label: 'Architecture Guides', to: '/resources#guides' },
     ],
   },

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 const steps = [
   { n: '01', title: 'Tell Us Your Requirement', desc: 'GPU type, quantity, geography, workload and duration. We translate your workload into a comparable spec.' },
   { n: '02', title: 'We Search Our Infrastructure Network', desc: 'We identify suitable capacity across cloud providers, GPU clouds, data centers and infrastructure partners.' },
-  { n: '03', title: 'Compare Infrastructure & Commercials', desc: 'Availability, architecture, geography, deployment model and pricing, compared side by side with TCO.' },
+  { n: '03', title: 'Compare Infrastructure & Options', desc: 'Availability, architecture, geography and deployment model compared side by side, with commercial terms quoted per mandate.' },
   { n: '04', title: 'Deploy', desc: 'We coordinate contracting, provisioning, deployment and ongoing infrastructure support. You contract directly with the provider.' },
 ]
 

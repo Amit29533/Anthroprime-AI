@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "fetch:market": "node scripts/fetch-market-data.mjs",
-    "build": "node scripts/fetch-market-data.mjs && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "test": "node tests/run-tests.js"
   },

@@ -2,7 +2,7 @@ import React, { Suspense, lazy, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowUpRight, ArrowRight, Cpu, Layers, Zap, Globe, Server, Rocket, Network } from 'lucide-react'
-import { Tag, Reveal, SectionHead, CTAPrimary, CTAGhost, Stat, Tilt } from '../components/ui'
+import { Tag, Reveal, SectionHead, CTAPrimary, CTAGhost, Stat, Tilt, Typewriter } from '../components/ui'
 import CapacityGraph from '../components/CapacityGraph'
 import HowItWorks from '../components/HowItWorks'
 import GlobalNetwork from '../components/GlobalNetwork'
@@ -10,7 +10,7 @@ import WhoWeServe from '../components/WhoWeServe'
 import WhyUs from '../components/WhyUs'
 import FinalCTA from '../components/FinalCTA'
 import { GPUS, GPU_ORDER } from '../data/gpus'
-import { marketSummary, MARKET_DATA, PROVIDER_META } from '../data/marketPricing'
+import { capacitySummary, PROVIDER_META } from '../data/capacity'
 import { useTheme } from '../theme'
 
 const Globe3D = lazy(() => import('../components/Globe3D'))
@@ -35,12 +35,28 @@ function Hero() {
           </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="font-display font-bold text-[42px] sm:text-[56px] lg:text-[72px] leading-[0.94] tracking-[-0.03em] mt-6">
-            Global GPU<br />
-            <span className="text-muted">Infrastructure.</span><br />
-            <span className="relative inline-block">
-              One Partner.
-              <motion.span layoutId="hero-underline" className="absolute -bottom-2 left-0 right-0 h-[3px] rounded-full bg-gradient-to-r from-accent to-transparent" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} />
-            </span>
+            <Typewriter
+              speed={30}
+              linePause={190}
+              startDelay={150}
+              lines={[
+                { text: 'Global GPU' },
+                { text: 'Infrastructure.', className: 'text-muted' },
+                {
+                  text: 'One Partner.',
+                  className: 'relative inline-block',
+                  tail: (
+                    <motion.span
+                      layoutId="hero-underline"
+                      className="absolute -bottom-2 left-0 right-0 h-[3px] rounded-full bg-gradient-to-r from-accent to-transparent"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  ),
+                },
+              ]}
+            />
           </motion.h1>
 
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-[17px] lg:text-[18px] leading-[1.6] text-muted max-w-[560px] mt-7">
@@ -112,11 +128,11 @@ function Hero() {
   )
 }
 
-/* ---------- Live market ticker ---------- */
+/* ---------- Capacity network ticker ---------- */
 const TICKER_LABEL = { h100: 'H100', h200: 'H200', b200: 'B200 / GB200', a100: 'A100', l40s: 'L40S', mi300x: 'Ent. Accelerators' }
 
-function MarketTicker() {
-  const summary = marketSummary()
+function CapacityTicker() {
+  const summary = capacitySummary()
   const order = ['h100', 'h200', 'b200', 'a100', 'l40s', 'mi300x']
   const rows = order.map(f => summary.find(s => s.family === f)).filter(Boolean)
 
@@ -124,7 +140,7 @@ function MarketTicker() {
     <Link to="/marketplace" className="block border-y border-border bg-surface/60 hover:bg-surface transition-colors group">
       <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-3.5 flex items-center gap-6">
         <span className="hidden sm:inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.15em] uppercase text-faint shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> Market reference · {MARKET_DATA.asOf}
+          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> Capacity network · {Object.keys(PROVIDER_META).length} providers tracked
         </span>
         <div className="flex-1 min-w-0 overflow-hidden fade-x">
           <div className="ticker-track">
@@ -133,9 +149,10 @@ function MarketTicker() {
                 {rows.map(r => (
                   <span key={r.family} className="inline-flex items-center gap-2 font-mono text-[12.5px] whitespace-nowrap">
                     <span className="font-semibold text-text uppercase">{TICKER_LABEL[r.family] || r.family}</span>
-                    <span className="text-faint">from</span>
-                    <span className="text-accent">${r.min.toFixed(2)}/hr</span>
+                    <span className="text-faint">·</span>
+                    <span className="text-faint">{r.count} configurations</span>
                     <span className="text-faint text-[11px]">· {r.providerCount} providers</span>
+                    <span className="text-accent text-[11px]">· on request</span>
                   </span>
                 ))}
               </div>
@@ -193,7 +210,7 @@ function GpuCloudSection() {
                         ))}
                       </div>
                       <div className="mt-5 pt-4 border-t border-border/60 flex items-center justify-between font-mono text-[11px] text-faint group-hover:text-accent transition-colors">
-                        Full specs & market pricing <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                        Full specs & availability <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                       </div>
                     </div>
                   </Link>
@@ -277,7 +294,7 @@ function ClustersSection() {
 function ServicesTeaser() {
   const cards = [
     { icon: Globe, title: 'GPU Capacity Sourcing', desc: 'Requirement in → verified shortlist out, with comparable commercials.', to: '/services#svc-sourcing' },
-    { icon: Layers, title: 'AI Infrastructure Advisory', desc: 'Architecture, TCO and provider selection before capital is committed.', to: '/services#svc-advisory' },
+    { icon: Layers, title: 'AI Infrastructure Advisory', desc: 'Architecture, efficiency and provider selection before capital is committed.', to: '/services#svc-advisory' },
     { icon: Server, title: 'Managed AI Infrastructure', desc: 'Monitoring, hardening, optimization and support after go-live.', to: '/services#svc-managed' },
   ]
   return (
@@ -311,7 +328,7 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <MarketTicker />
+      <CapacityTicker />
       <GpuCloudSection />
       <ClustersSection />
       <HowItWorks />
