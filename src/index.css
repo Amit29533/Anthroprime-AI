@@ -139,7 +139,24 @@
   .gpu-marquee-copy:first-child { flex-wrap: wrap; padding-right: 0; }
 }
 
-/* ---- Market ticker marquee (scrolling row of reference prices) ---- */
+/* ---- Typewriter caret ---- */
+.type-caret {
+  display: inline-block;
+  width: 0.055em;
+  min-width: 2px;
+  height: 0.78em;
+  margin-left: 0.07em;
+  vertical-align: baseline;
+  border-radius: 1px;
+  background: rgb(var(--c-accent));
+  animation: caret-blink 1.05s steps(2, start) infinite;
+}
+@keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .type-caret { animation: none; opacity: 1; }
+}
+
+/* ---- Capacity ticker marquee (scrolling row of tracked configurations) ---- */
 .ticker-track { display: flex; width: max-content; animation: ticker-scroll 36s linear infinite; }
 .ticker-track:hover { animation-play-state: paused; }
 .ticker-copy { display: flex; align-items: center; gap: 24px; padding-right: 24px; }

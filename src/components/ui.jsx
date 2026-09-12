@@ -1,7 +1,98 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowUpRight, ChevronRight } from 'lucide-react'
+
+/**
+ * Typewriter — types its lines out one character at a time, line by line.
+ *
+ * lines: ['text'] or [{ text, className, tail }]. `tail` is rendered after the
+ * line once that line has finished typing (used for the headline underline).
+ *
+ * Accessibility / SEO: the complete text is always in the DOM as an sr-only
+ * node, so screen readers and crawlers read the finished headline even while
+ * the visible copy is still animating. Users who prefer reduced motion get the
+ * full text immediately.
+ */
+export function Typewriter({
+  lines,
+  speed = 52,
+  linePause = 300,
+  startDelay = 220,
+  caret = true,
+  caretClassName = '',
+  lineClassName = '',
+  className = '',
+  onDone,
+}) {
+  const items = lines.map(l => (typeof l === 'string' ? { text: l } : l))
+  const ends = []
+  let acc = 0
+  items.forEach(l => { acc += l.text.length; ends.push(acc) })
+  const total = acc
+
+  const [typed, setTyped] = useState(0)
+  const [reduced, setReduced] = useState(false)
+  const doneRef = useRef(null)
+  doneRef.current = onDone
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReduced(mq.matches)
+    const onChange = (e) => setReduced(e.matches)
+    if (mq.addEventListener) mq.addEventListener('change', onChange)
+    else if (mq.addListener) mq.addListener(onChange)
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', onChange)
+      else if (mq.removeListener) mq.removeListener(onChange)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (reduced || total === 0) {
+      setTyped(total)
+      doneRef.current?.()
+      return
+    }
+    setTyped(0)
+    const boundaries = new Set(ends.slice(0, -1))
+    let n = 0
+    let id
+    const step = () => {
+      n += 1
+      setTyped(n)
+      if (n < total) id = setTimeout(step, boundaries.has(n) ? linePause : speed)
+      else doneRef.current?.()
+    }
+    id = setTimeout(step, startDelay)
+    return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduced, total, speed, linePause, startDelay])
+
+  const done = typed >= total
+  const caretLine = done ? items.length - 1 : Math.max(0, ends.findIndex(e => typed < e))
+
+  return (
+    <>
+      <span className="sr-only">{items.map(l => l.text).join(' ')}</span>
+      <span aria-hidden="true" className={className}>
+        {items.map((item, i) => {
+          const start = i === 0 ? 0 : ends[i - 1]
+          const shown = item.text.slice(0, Math.max(0, Math.min(item.text.length, typed - start)))
+          const lineDone = typed >= ends[i]
+          return (
+            <span key={i} className={`block ${item.className || lineClassName}`}>
+              {shown}
+              {caret && i === caretLine && <span className={`type-caret ${caretClassName}`} />}
+              {lineDone && item.tail}
+            </span>
+          )
+        })}
+      </span>
+    </>
+  )
+}
 
 /** Eyebrow tag used above section titles */
 export function Tag({ children }) {

@@ -64,7 +64,7 @@ export default function Contact() {
                 {[
                   ['01', 'First response within 24 hours', 'A named engineer from the desk — not a sales queue.'],
                   ['02', 'Feasibility read in 2–5 days', 'Availability across the network for your GPU type, quantity and geography.'],
-                  ['03', 'Comparable shortlist', 'Architecture, deployment model and pricing side by side, with TCO.'],
+                  ['03', 'Comparable shortlist', 'Architecture, deployment model and commercial terms side by side.'],
                   ['04', 'NDA whenever you need one', 'Partner identities disclosed to qualified buyers under NDA — never published without permission.'],
                 ].map(([n, t, d]) => (
                   <div key={n} className="flex gap-4">

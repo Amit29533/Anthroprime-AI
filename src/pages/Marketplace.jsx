@@ -3,11 +3,11 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, X, ArrowUpRight, ArrowDownUp, ExternalLink } from 'lucide-react'
 import { PageHero, Reveal, CTAPrimary } from '../components/ui'
-import { MARKET_DATA, PROVIDER_META, marketSummary } from '../data/marketPricing'
-import { GPUS } from '../data/gpus'
+import { CAPACITY_DATA, PROVIDER_META, capacitySummary } from '../data/capacity'
 
 /* Labels mirror the GPU Capacity Desk list: H100 · H200 · B200/GB200 · A100 · L40S · Enterprise Accelerators */
 const FAMILY_LABEL = { h100: 'H100', h200: 'H200', b200: 'B200 / GB200', a100: 'A100', l40s: 'L40S', mi300x: 'Ent. Accelerators' }
+const FAMILY_ORDER = ['h100', 'h200', 'b200', 'a100', 'l40s', 'mi300x']
 /* SKUs outside the desk list are grouped under their desk category (Blackwell / Enterprise Accelerators) */
 const DESK_FAMILY = { b300: 'b200', gb300: 'b200', b200: 'b200', gb200: 'b200', mi300x: 'mi300x' }
 const KIND_STYLE = {
@@ -16,6 +16,13 @@ const KIND_STYLE = {
   'serverless': 'bg-purple/10 text-purple border-purple/25',
   'secure': 'bg-surface3 text-muted border-border',
   'community': 'bg-surface3 text-muted border-border',
+}
+const KIND_LABEL = {
+  'on-demand': 'On-demand',
+  'spot': 'Spot',
+  'serverless': 'Serverless',
+  'secure': 'Secure',
+  'community': 'Community',
 }
 
 function slugForFamily(fam) {
@@ -28,15 +35,15 @@ export default function Marketplace() {
   const [family, setFamily] = useState(params.get('gpu') || 'all')
   const [kind, setKind] = useState('all')
   const [query, setQuery] = useState('')
-  const [sort, setSort] = useState('price-asc')
+  const [sort, setSort] = useState('family')
 
   useEffect(() => {
     const g = params.get('gpu')
     if (g) setFamily(g)
   }, [params])
 
-  const all = useMemo(() => MARKET_DATA.offers
-    .map(([provider, gpu, variant, vram, usd, k, minGpus]) => ({ provider, gpu, variant, vram, usd, kind: k, minGpus, deskFamily: DESK_FAMILY[gpu] || gpu }))
+  const all = useMemo(() => CAPACITY_DATA.offers
+    .map(([provider, gpu, variant, vram, kind, minGpus]) => ({ provider, gpu, variant, vram, kind, minGpus, deskFamily: DESK_FAMILY[gpu] || gpu }))
     .filter(o => FAMILY_LABEL[o.deskFamily]), [])
 
   const filtered = useMemo(() => {
@@ -49,17 +56,20 @@ export default function Marketplace() {
         o.gpu.includes(q) || o.variant.toLowerCase().includes(q) ||
         (PROVIDER_META[o.provider]?.name || o.provider).toLowerCase().includes(q))
     }
+    const byFamily = (a, b) => FAMILY_ORDER.indexOf(a.deskFamily) - FAMILY_ORDER.indexOf(b.deskFamily)
     switch (sort) {
-      case 'price-asc': rows = [...rows].sort((a, b) => a.usd - b.usd); break
-      case 'price-desc': rows = [...rows].sort((a, b) => b.usd - a.usd); break
-      case 'vram-desc': rows = [...rows].sort((a, b) => b.vram - a.vram); break
+      case 'family': rows = [...rows].sort(byFamily); break
       case 'provider': rows = [...rows].sort((a, b) => (PROVIDER_META[a.provider]?.name || a.provider).localeCompare(PROVIDER_META[b.provider]?.name || b.provider)); break
+      case 'vram-desc': rows = [...rows].sort((a, b) => b.vram - a.vram); break
+      case 'mingpus-asc': rows = [...rows].sort((a, b) => a.minGpus - b.minGpus); break
       default: break
     }
     return rows
   }, [all, family, kind, query, sort])
 
-  const summary = useMemo(() => marketSummary(), [])
+  const summary = useMemo(() => capacitySummary()
+    .slice()
+    .sort((a, b) => FAMILY_ORDER.indexOf(a.family) - FAMILY_ORDER.indexOf(b.family)), [])
   const hasFilters = family !== 'all' || kind !== 'all' || query !== ''
   const clear = () => { setFamily('all'); setKind('all'); setQuery(''); navigate('/marketplace', { replace: true }) }
 
@@ -71,7 +81,7 @@ export default function Marketplace() {
       state: {
         gpu: gpuLabel,
         gpuQty: row.minGpus > 1 ? String(row.minGpus) : '',
-        workload: `${row.variant} · benchmarked at $${row.usd.toFixed(2)}/GPU/hr (${PROVIDER_META[row.provider]?.name || row.provider})`,
+        workload: `${row.variant} · ${row.vram} GB · ${KIND_LABEL[row.kind] || row.kind} (${PROVIDER_META[row.provider]?.name || row.provider})`,
         deployType: row.kind === 'spot' ? 'Bare Metal' : 'Managed',
       },
     })
@@ -83,13 +93,13 @@ export default function Marketplace() {
         crumb="Marketplace"
         title="GPU Capacity"
         highlight="Marketplace"
-        sub="Live market reference pricing for data-center GPUs across the cloud landscape — a benchmark of what the market charges, so you can source from a position of knowledge. We then negotiate your actual terms through our infrastructure network."
+        sub="The accelerator families, configurations and deployment models we track across our infrastructure network — availability, memory profile and provider coverage at a glance. Commercials are quoted per mandate and verified at the time of your request."
       >
         <div className="flex flex-wrap items-center gap-3">
           <CTAPrimary to="/find-capacity">Find GPU Capacity</CTAPrimary>
           <span className="font-mono text-[11px] px-3 py-1.5 rounded-full bg-surface border border-border text-faint inline-flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            {all.length} offers · {Object.keys(PROVIDER_META).length} providers · as of {MARKET_DATA.asOf}
+            {all.length} configurations · {Object.keys(PROVIDER_META).length} providers tracked
           </span>
         </div>
       </PageHero>
@@ -112,9 +122,12 @@ export default function Marketplace() {
                       <span className="font-display font-bold text-[16px]">{FAMILY_LABEL[s.family]}</span>
                       <span className="font-mono text-[10px] text-faint">{s.vram}GB</span>
                     </div>
-                    <div className="mt-2 font-mono text-[13px]"><span className="text-accent">${s.min.toFixed(2)}</span><span className="text-faint text-[11px]">/GPU/hr low</span></div>
-                    <div className="font-mono text-[10.5px] text-faint mt-0.5">{s.count} offers · {s.providerCount} providers</div>
-                    {slug && <div className="mt-2 font-mono text-[10px] text-faint group-hover:text-accent transition-colors">{active ? 'Clear filter ×' : 'Filter offers →'}</div>}
+                    <div className="mt-2 font-mono text-[13px]">
+                      <span className="text-accent">{s.count}</span>
+                      <span className="text-faint text-[11px]"> configurations</span>
+                    </div>
+                    <div className="font-mono text-[10.5px] text-faint mt-0.5">{s.providerCount} {s.providerCount === 1 ? 'provider' : 'providers'} · {s.kindCount} {s.kindCount === 1 ? 'type' : 'types'}</div>
+                    {slug && <div className="mt-2 font-mono text-[10px] text-faint group-hover:text-accent transition-colors">{active ? 'Clear filter ×' : 'Filter configurations →'}</div>}
                   </button>
                 </Reveal>
               )
@@ -137,18 +150,18 @@ export default function Marketplace() {
                 {['all', 'on-demand', 'spot', 'serverless'].map(k => (
                   <button key={k} onClick={() => setKind(k)} aria-pressed={kind === k}
                     className={`px-3.5 py-2 rounded-full font-mono text-[12px] border transition-all ${kind === k ? 'bg-accent text-bg border-accent' : 'bg-bg border-border text-muted hover:text-text hover:border-border2'}`}>
-                    {k === 'all' ? 'All types' : k}
+                    {k === 'all' ? 'All types' : (KIND_LABEL[k] || k)}
                   </button>
                 ))}
               </div>
               <div className="flex items-center gap-2">
                 <ArrowDownUp className="w-4 h-4 text-faint" />
-                <select value={sort} onChange={e => setSort(e.target.value)} aria-label="Sort offers"
+                <select value={sort} onChange={e => setSort(e.target.value)} aria-label="Sort configurations"
                   className="px-3 py-2 rounded-xl bg-bg border border-border font-mono text-[12px] text-muted focus:outline-none focus:border-accent/50 cursor-pointer">
-                  <option value="price-asc">Price · low → high</option>
-                  <option value="price-desc">Price · high → low</option>
-                  <option value="vram-desc">Memory · high → low</option>
+                  <option value="family">GPU family</option>
                   <option value="provider">Provider · A–Z</option>
+                  <option value="vram-desc">Memory · high → low</option>
+                  <option value="mingpus-asc">Minimum GPUs · low → high</option>
                 </select>
               </div>
             </div>
@@ -160,7 +173,7 @@ export default function Marketplace() {
               <table className="w-full min-w-[820px]">
                 <thead>
                   <tr className="border-b border-border bg-surface2/50">
-                    {['Provider', 'GPU / Variant', 'Memory', 'USD / GPU / hr', 'Type', 'Min GPUs', ''].map(h => (
+                    {['Provider', 'GPU / Variant', 'Memory', 'Commercials', 'Type', 'Min GPUs', ''].map(h => (
                       <th key={h} className="text-left font-mono text-[11px] tracking-wide uppercase text-faint font-medium px-5 py-4">{h}</th>
                     ))}
                   </tr>
@@ -171,7 +184,7 @@ export default function Marketplace() {
                       const pm = PROVIDER_META[row.provider] || { name: row.provider, url: '#' }
                       return (
                         <motion.tr
-                          key={`${row.provider}-${row.variant}-${row.usd}-${row.kind}`}
+                          key={`${row.provider}-${row.variant}-${row.vram}-${row.kind}-${row.minGpus}`}
                           layout
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1, transition: { delay: Math.min(i * 0.02, 0.3) } }}
@@ -189,10 +202,10 @@ export default function Marketplace() {
                           </td>
                           <td className="px-5 py-3.5 font-mono text-[13px] text-muted">{row.vram} GB</td>
                           <td className="px-5 py-3.5">
-                            <span className="font-mono font-bold text-[15px] text-accent">${row.usd.toFixed(2)}</span>
+                            <span className="font-mono text-[12px] px-2.5 py-1 rounded-full bg-surface3 border border-border text-muted whitespace-nowrap">Price on request</span>
                           </td>
                           <td className="px-5 py-3.5">
-                            <span className={`font-mono text-[10.5px] px-2.5 py-1 rounded-full border ${KIND_STYLE[row.kind]}`}>{row.kind}</span>
+                            <span className={`font-mono text-[10.5px] px-2.5 py-1 rounded-full border ${KIND_STYLE[row.kind]}`}>{KIND_LABEL[row.kind] || row.kind}</span>
                           </td>
                           <td className="px-5 py-3.5 font-mono text-[13px] text-muted">{row.minGpus}×</td>
                           <td className="px-5 py-3.5 text-right">
@@ -208,7 +221,7 @@ export default function Marketplace() {
                   {filtered.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-6 py-14 text-center">
-                        <div className="font-display font-semibold text-[15px]">No offers match those filters.</div>
+                        <div className="font-display font-semibold text-[15px]">No configurations match those filters.</div>
                         <div className="text-[13px] text-muted mt-1.5">Most capacity is sourced on request, not listed. <Link to="/find-capacity" className="text-accent hover:underline">Ask us anyway →</Link></div>
                       </td>
                     </tr>
@@ -219,35 +232,36 @@ export default function Marketplace() {
 
             <div className="px-5 py-4 bg-surface2/30 border-t border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <p className="font-mono text-[11.5px] text-faint">
-                Showing {filtered.length} of {all.length} offers
+                Showing {filtered.length} of {all.length} configurations
                 {hasFilters && <button onClick={clear} className="ml-3 inline-flex items-center gap-1 text-accent hover:underline"><X className="w-3 h-3" /> Clear filters</button>}
               </p>
               <div className="font-mono text-[11px] text-faint flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" /> Dataset: gpu-rental-prices · CC BY 4.0 · refreshed daily upstream
+                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" /> Commercials quoted per mandate · availability verified at time of request
               </div>
             </div>
           </div>
 
-          {/* honesty note + roadmap */}
+          {/* how to read the table + roadmap */}
           <div className="mt-8 grid lg:grid-cols-3 gap-4">
             <Reveal className="lg:col-span-2">
               <div className="rounded-2xl bg-gradient-to-br from-surface to-surface2 border border-border p-6 h-full">
                 <div className="font-display font-semibold text-[15px]">Reading this table correctly</div>
                 <ul className="mt-3 space-y-2 text-[13px] leading-[1.55] text-muted">
-                  <li>• These are <span className="text-text">public list prices of third-party providers</span> — a market benchmark, not Anthroprime inventory or quotes.</li>
-                  <li>• Real terms vary with configuration, duration, geography and commitment; we negotiate them for you across our network.</li>
-                  <li>• Spot/community tiers are interruptible; on-demand is firm; serverless is per-use platform pricing.</li>
+                  <li>• These are <span className="text-text">configurations of third-party providers</span> we track — a view of the market, not Anthroprime inventory or quotes.</li>
+                  <li>• Commercials are never published: availability, term, geography and commitment all move them, so we quote per mandate and negotiate on your behalf.</li>
+                  <li>• Spot/community tiers are interruptible; on-demand is firm; serverless is a per-use platform model.</li>
                 </ul>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <a href={MARKET_DATA.source.repo} target="_blank" rel="noopener" className="font-mono text-[11px] px-3 py-1.5 rounded-full bg-surface3 border border-border text-faint hover:text-text transition-colors">Dataset on GitHub ↗</a>
-                  <a href={MARKET_DATA.source.live} target="_blank" rel="noopener" className="font-mono text-[11px] px-3 py-1.5 rounded-full bg-surface3 border border-border text-faint hover:text-text transition-colors">gpurentalprices.com ↗</a>
+                <div className="mt-4">
+                  <Link to="/find-capacity" className="inline-flex items-center gap-1.5 font-mono text-[11px] px-3 py-1.5 rounded-full bg-surface3 border border-border text-faint hover:text-text transition-colors">
+                    Request commercials for a configuration <ArrowUpRight className="w-3 h-3" />
+                  </Link>
                 </div>
               </div>
             </Reveal>
             <Reveal delay={0.08}>
               <div className="rounded-2xl bg-accentDim border border-accent/20 p-6 h-full">
                 <div className="font-mono text-[11px] uppercase tracking-wide text-accent">Roadmap · Two-sided market</div>
-                <div className="font-display font-medium text-[14px] mt-2 leading-snug">Filters coming: Country · Price/GPU/hr · Interconnect · Contract duration. Suppliers will be able to list capacity.</div>
+                <div className="font-display font-medium text-[14px] mt-2 leading-snug">Filters coming: Country · Interconnect · Availability window · Contract duration. Suppliers will be able to list capacity.</div>
                 <a href="mailto:desk@anthroprime.ai?subject=Listing%20GPU%20capacity%20(supply%20side)" className="mt-4 inline-flex items-center gap-1.5 font-mono text-[12px] text-accent hover:underline">
                   List GPU Capacity →
                 </a>

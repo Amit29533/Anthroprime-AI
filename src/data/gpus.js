@@ -191,7 +191,7 @@ export const GPUS = {
     full: 'NVIDIA A100 Tensor Core GPU',
     generation: 'Ampere',
     tagline: 'The proven value platform.',
-    desc: 'Still the most cost-effective path to serious training and fine-tuning capacity. Abundant supply across our network makes A100 the economics play — especially with MIG partitioning for shared clusters.',
+    desc: 'Still the most widely available path to serious training and fine-tuning capacity. Deep supply across our network makes A100 the availability play — especially with MIG partitioning for shared clusters.',
     accent: '#8A9BB0',
     accentLight: '#475569',
     status: 'Sourcing network active',
@@ -226,7 +226,7 @@ export const GPUS = {
         ['Cluster fabric', 'InfiniBand HDR 200 Gb/s'],
       ],
     },
-    bestFor: ['Fine-tuning at scale', 'Research clusters', 'MIG multi-tenancy', 'Cost-optimized training'],
+    bestFor: ['Fine-tuning at scale', 'Research clusters', 'MIG multi-tenancy', 'High-availability training'],
     chips: ['80GB', 'HBM2e', 'NVLink 3', '400W', 'MIG'],
   },
 
