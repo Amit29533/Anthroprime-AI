@@ -1,64 +1,48 @@
-import React, { useEffect } from 'react'
-import Navbar from './components/Navbar'
-import Hero from './components/Hero'
-import GPUMarquee from './components/GPUMarquee'
-import GPUAggregation from './components/GPUAggregation'
-import DedicatedClusters from './components/DedicatedClusters'
-import HowItWorks from './components/HowItWorks'
-import Marketplace from './components/Marketplace'
-import FindCapacity from './components/FindCapacity'
-import GlobalNetwork from './components/GlobalNetwork'
-import WhoWeServe from './components/WhoWeServe'
-import Services from './components/Services'
-import Solutions from './components/Solutions'
-import WhyUs from './components/WhyUs'
-import Resources from './components/Resources'
-import Company from './components/Company'
-import FinalCTA from './components/FinalCTA'
-import Footer from './components/Footer'
+import React from 'react'
+import { Routes, Route } from 'react-router-dom'
+import Layout from './components/Layout'
+import Home from './pages/Home'
+import Marketplace from './pages/Marketplace'
+import GpuDetail from './pages/GpuDetail'
+import { SolutionsIndex, SolutionDetail } from './pages/Solutions'
+import Services from './pages/Services'
+import Resources from './pages/Resources'
+import About from './pages/About'
+import Contact from './pages/Contact'
+import FindCapacity from './pages/FindCapacity'
+import NotFound from './pages/NotFound'
 
+/**
+ * Anthroprime.ai — multi-page site
+ *
+ * /                      Home (hero, aggregation, clusters, how-it-works,
+ *                          global network, services, who-we-serve, why-us)
+ * /marketplace           GPU capacity marketplace (live market reference data)
+ * /gpu/:slug             GPU detail pages (h100 h200 b200 gb200 a100 l40s)
+ * /solutions             Solutions index
+ * /solutions/:slug       Solution detail pages
+ * /services              Services (sourcing, advisory, deployment, managed, security)
+ * /resources             GPU comparison + pricing economics + guides
+ * /about                 About + Partners
+ * /contact               Contact
+ * /find-capacity         Find GPU Capacity form (primary CTA destination)
+ */
 export default function App() {
-  useEffect(() => {
-    // Smooth reveal on scroll
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) e.target.classList.add('in-view')
-      })
-    }, { threshold: 0.1 })
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
-    return () => observer.disconnect()
-  }, [])
-
   return (
-    <div className="min-h-screen bg-bg relative overflow-x-hidden">
-      {/* Background effects */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 dot-pattern opacity-[0.15]" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-accent/5 rounded-full blur-[120px]" />
-        <div className="absolute top-[40%] right-0 w-[800px] h-[800px] bg-[#7C3AED]/5 rounded-full blur-[120px]" />
-      </div>
-
-      <div className="relative z-10">
-        <Navbar />
-        <main>
-          <Hero />
-          <GPUMarquee />
-          <GPUAggregation />
-          <DedicatedClusters />
-          <Solutions />
-          <HowItWorks />
-          <Marketplace />
-          <FindCapacity />
-          <GlobalNetwork />
-          <WhoWeServe />
-          <Services />
-          <WhyUs />
-          <Resources />
-          <Company />
-          <FinalCTA />
-        </main>
-        <Footer />
-      </div>
-    </div>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/gpu/:slug" element={<GpuDetail />} />
+        <Route path="/solutions" element={<SolutionsIndex />} />
+        <Route path="/solutions/:slug" element={<SolutionDetail />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/find-capacity" element={<FindCapacity />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
   )
 }

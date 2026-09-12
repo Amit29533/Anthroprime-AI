@@ -12,12 +12,14 @@
     <meta property="og:title" content="Anthroprime.ai — Global GPU Infrastructure. One Partner." />
     <meta property="og:description" content="Source and deploy enterprise AI infrastructure across a global network of GPU clouds, data centers and infrastructure providers." />
     <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#070A0F" />
   </head>
   <body class="bg-bg text-text antialiased selection:bg-accent selection:text-bg">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <!-- Netlify form detection -->
     <form name="gpu-capacity" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="text" name="bot-field" />
       <input type="text" name="gpuType" />
       <input type="text" name="gpuQty" />
       <input type="text" name="location" />

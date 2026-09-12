@@ -1,13 +1,14 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { Building2, Sparkles, GraduationCap, Landmark, Cloud, Network } from 'lucide-react'
 
 const customers = [
-  { title: 'Enterprises', desc: 'Private AI infrastructure and enterprise GenAI deployments with data residency and security controls.', icon: '◧' },
-  { title: 'AI Companies', desc: 'Training and inference infrastructure for AI-native businesses scaling from prototype to production.', icon: '⚡' },
-  { title: 'Research & Academia', desc: 'High-performance GPU clusters for advanced research, with grant-friendly commercial models.', icon: '◈' },
-  { title: 'Government & Public Sector', desc: 'Sovereign and locally hosted AI infrastructure for regulated and public-sector mandates.', icon: '⬡' },
-  { title: 'Cloud & SaaS Companies', desc: 'Additional GPU capacity without building new infrastructure. Burst and reserved models.', icon: '☁' },
-  { title: 'System Integrators', desc: 'Backend GPU capacity and infrastructure expertise for their customer projects. White-label capable.', icon: '⎔' },
+  { title: 'Enterprises', desc: 'Private AI infrastructure and enterprise GenAI deployments with data residency and security controls.', icon: Building2 },
+  { title: 'AI Companies', desc: 'Training and inference infrastructure for AI-native businesses scaling from prototype to production.', icon: Sparkles },
+  { title: 'Research & Academia', desc: 'High-performance GPU clusters for advanced research, with grant-friendly commercial models.', icon: GraduationCap },
+  { title: 'Government & Public Sector', desc: 'Sovereign and locally hosted AI infrastructure for regulated and public-sector mandates.', icon: Landmark },
+  { title: 'Cloud & SaaS Companies', desc: 'Additional GPU capacity without building new infrastructure. Burst and reserved models.', icon: Cloud },
+  { title: 'System Integrators', desc: 'Backend GPU capacity and infrastructure expertise for their customer projects. White-label capable.', icon: Network },
 ]
 
 export default function WhoWeServe() {
@@ -31,14 +32,17 @@ export default function WhoWeServe() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.06 }}
-              className="group rounded-2xl bg-bg border border-border p-6 hover:border-accent/20 hover:bg-surface2 transition-all relative overflow-hidden"
+              className="group rounded-2xl bg-bg border border-border p-6 hover:border-accent/20 hover:bg-surface2 hover:-translate-y-1 transition-all relative overflow-hidden"
             >
               <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-accent/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="w-10 h-10 rounded-xl bg-surface3 border border-border flex items-center justify-center text-faint group-hover:text-accent group-hover:border-accent/20 transition-colors mb-4">
-                {c.icon}
+              <div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'radial-gradient(220px circle at 30% 20%, rgba(47,242,210,0.06), transparent 65%)' }} />
+              <div className="relative">
+                <div className="w-10 h-10 rounded-xl bg-surface3 border border-border flex items-center justify-center text-faint group-hover:text-accent group-hover:border-accent/20 transition-colors mb-4">
+                  <c.icon className="w-5 h-5" />
+                </div>
+                <h3 className="font-display font-semibold text-[16px]">{c.title}</h3>
+                <p className="text-[13.5px] leading-[1.5] text-muted mt-2">{c.desc}</p>
               </div>
-              <h3 className="font-display font-semibold text-[16px]">{c.title}</h3>
-              <p className="text-[13.5px] leading-[1.5] text-muted mt-2">{c.desc}</p>
             </motion.div>
           ))}
         </div>
