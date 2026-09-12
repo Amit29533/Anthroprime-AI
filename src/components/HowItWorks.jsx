@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
 const steps = [
@@ -75,9 +76,9 @@ export default function HowItWorks() {
             <div className="font-display font-semibold text-[16px]">Access GPU capacity through our infrastructure network.</div>
             <div className="font-mono text-[12px] text-faint mt-1">Provider-agnostic • No lock-in • Enterprise-grade verification</div>
           </div>
-          <a href="#find-capacity" className="px-5 py-2.5 rounded-xl bg-accent text-bg font-semibold text-[13.5px] hover:bg-accent2 transition-colors shrink-0">
+          <Link to="/find-capacity" className="px-5 py-2.5 rounded-xl bg-accent text-bg font-semibold text-[13.5px] hover:bg-accent2 transition-colors shrink-0">
             Start a Sourcing Mandate →
-          </a>
+          </Link>
         </motion.div>
       </div>
     </section>

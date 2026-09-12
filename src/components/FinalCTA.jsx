@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
 export default function FinalCTA() {
@@ -30,12 +31,12 @@ export default function FinalCTA() {
               Tell us what you need. We'll identify the right infrastructure, location and commercial model.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <a href="#find-capacity" className="px-7 py-3.5 rounded-xl bg-accent text-bg font-semibold text-[14.5px] hover:bg-accent2 transition-colors glow-strong">
+              <Link to="/find-capacity" className="px-7 py-3.5 rounded-xl bg-accent text-bg font-semibold text-[14.5px] hover:bg-accent2 transition-colors glow-strong">
                 Find GPU Capacity →
-              </a>
-              <a href="#contact" className="px-7 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white font-medium text-[14.5px] hover:bg-white/10 transition-colors">
+              </Link>
+              <Link to="/contact" className="px-7 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white font-medium text-[14.5px] hover:bg-white/10 transition-colors">
                 Talk to an Expert
-              </a>
+              </Link>
             </div>
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-6 font-mono text-[11px] text-[#5A6B80]">
