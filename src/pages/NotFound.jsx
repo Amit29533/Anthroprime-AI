@@ -7,9 +7,9 @@ export default function NotFound() {
   return (
     <section className="min-h-[80vh] flex items-center justify-center px-6">
       <div className="text-center max-w-[520px]">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="font-display font-bold text-[100px] leading-none text-gradient">
+        <motion.h1 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="font-display font-bold text-[100px] leading-none text-gradient">
           404
-        </motion.div>
+        </motion.h1>
         <div className="font-mono text-[12px] tracking-[0.2em] uppercase text-faint mt-3">Node not found in the network</div>
         <p className="text-muted text-[15px] leading-[1.6] mt-5">
           This route isn't in our capacity graph. Head back to the homepage, or go straight to the marketplace.

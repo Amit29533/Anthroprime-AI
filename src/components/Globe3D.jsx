@@ -1,9 +1,12 @@
 import React, { useMemo, useRef, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { useTheme } from '../theme'
 
 const ACCENT = '#2FF2D2'
 const DIM = '#1E2A3A'
+const ACCENT_LIGHT = '#0F766E'
+const DIM_LIGHT = '#C7D4E0'
 
 /** Fibonacci-sphere point cloud */
 function useSpherePoints(count, radius) {
@@ -22,26 +25,26 @@ function useSpherePoints(count, radius) {
   }, [count, radius])
 }
 
-function PointsSphere({ count = 1600, radius = 1 }) {
+function PointsSphere({ count = 1600, radius = 1, color = ACCENT }) {
   const positions = useSpherePoints(count, radius)
   return (
     <points>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.016} color={ACCENT} transparent opacity={0.75} sizeAttenuation depthWrite={false} />
+      <pointsMaterial size={0.016} color={color} transparent opacity={0.75} sizeAttenuation depthWrite={false} />
     </points>
   )
 }
 
-function FaintSphere({ count = 900, radius = 1.001 }) {
+function FaintSphere({ count = 900, radius = 1.001, color = DIM }) {
   const positions = useSpherePoints(count, radius)
   return (
     <points>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.011} color={DIM} transparent opacity={0.55} sizeAttenuation depthWrite={false} />
+      <pointsMaterial size={0.011} color={color} transparent opacity={0.55} sizeAttenuation depthWrite={false} />
     </points>
   )
 }
@@ -79,7 +82,7 @@ function Arc({ from, to, lift = 0.35, color = ACCENT, opacity = 0.5, speed = 1 }
 }
 
 /** Hub + regional node dots on the sphere surface */
-function Nodes({ points }) {
+function Nodes({ points, color = ACCENT }) {
   return (
     <group>
       {points.map(([lat, lon], i) => {
@@ -91,7 +94,7 @@ function Nodes({ points }) {
         return (
           <mesh key={i} position={[x, y, z]}>
             <sphereGeometry args={[0.022, 12, 12]} />
-            <meshBasicMaterial color={ACCENT} />
+            <meshBasicMaterial color={color} />
           </mesh>
         )
       })}
@@ -117,7 +120,7 @@ const ARCS = [
   [REGIONS[2], REGIONS[3]],
 ]
 
-function Scene({ interactive, reduced }) {
+function Scene({ interactive, reduced, accent = ACCENT, dim = DIM }) {
   const group = useRef()
   const pointer = useRef({ x: 0, y: 0 })
 
@@ -142,11 +145,11 @@ function Scene({ interactive, reduced }) {
 
   return (
     <group ref={group}>
-      <FaintSphere />
-      <PointsSphere />
-      <Nodes points={REGIONS} />
+      <FaintSphere color={dim} />
+      <PointsSphere color={accent} />
+      <Nodes points={REGIONS} color={accent} />
       {ARCS.map((a, i) => (
-        <Arc key={i} from={a[0]} to={a[1]} lift={0.3 + (i % 3) * 0.08} opacity={0.55} speed={0.8 + i * 0.25} />
+        <Arc key={i} from={a[0]} to={a[1]} lift={0.3 + (i % 3) * 0.08} opacity={0.55} speed={0.8 + i * 0.25} color={accent} />
       ))}
     </group>
   )
@@ -175,6 +178,10 @@ class Boundary extends React.Component {
 
 export default function Globe3D({ className = '', interactive = true }) {
   const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const theme = useTheme()
+  const dark = theme === 'dark'
+  const accent = dark ? ACCENT : ACCENT_LIGHT
+  const dim = dark ? DIM : DIM_LIGHT
 
   return (
     <div className={`relative ${className}`} aria-hidden>
@@ -186,11 +193,11 @@ export default function Globe3D({ className = '', interactive = true }) {
           style={{ background: 'transparent' }}
         >
           <ambientLight intensity={0.5} />
-          <Scene interactive={interactive && !reduced} reduced={reduced} />
+          <Scene interactive={interactive && !reduced} reduced={reduced} accent={accent} dim={dim} />
         </Canvas>
       </Boundary>
-      {/* vignette so the globe melts into the page */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(closest-side,transparent_60%,#070A0F_100%)]" />
+      {/* vignette so the globe melts into the page (theme-aware) */}
+      <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(closest-side, transparent 60%, rgb(var(--c-bg) / 1) 100%)' }} />
     </div>
   )
 }

@@ -2,10 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Anthroprime.ai — Global GPU Infrastructure. One Partner.</title>
     <meta name="description" content="Anthroprime.ai connects enterprises, AI companies and research organizations with GPU infrastructure across multiple cloud providers, data centers and infrastructure partners. One Partner. Global GPU Infrastructure." />
+    <script>
+      /* Set theme before first paint to avoid a flash of the wrong theme. */
+      (function () {
+        try {
+          var root = document.documentElement;
+          var saved = null;
+          try { saved = localStorage.getItem('ap-theme'); } catch (e) {}
+          var dark = saved === 'dark';
+          root.classList.toggle('dark', dark);
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', dark ? '#070A0F' : '#F9FAFB');
+        } catch (e) {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">

@@ -25,7 +25,7 @@ export default function CapacityGraph({ className = '' }) {
         {/* hub */}
         <g>
           <rect x="230" y="228" width="180" height="64" rx="12" className="node hub" />
-          <rect x="230" y="228" width="180" height="64" rx="12" fill="none" stroke="#2FF2D2" strokeOpacity="0.25" strokeWidth="5">
+          <rect x="230" y="228" width="180" height="64" rx="12" fill="none" className="hub-pulse" strokeOpacity="0.25" strokeWidth="5">
             <animate attributeName="stroke-opacity" values="0.12;0.35;0.12" dur="3s" repeatCount="indefinite" />
           </rect>
           <text x="320" y="254" textAnchor="middle" className="nodelabel hub">AnthroPrime</text>

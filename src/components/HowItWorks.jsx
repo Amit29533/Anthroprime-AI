@@ -19,7 +19,7 @@ export default function HowItWorks() {
             How the Aggregator Model Works
           </div>
           <h2 className="font-display font-bold text-[32px] lg:text-[44px] leading-[1.05] tracking-[-0.02em]">
-            Why come to us instead of ten different GPU providers.
+            Why Anthroprime
           </h2>
           <p className="text-muted text-[16px] mt-4">
             One desk between you and the entire GPU market — requirement in, deployed infrastructure out.

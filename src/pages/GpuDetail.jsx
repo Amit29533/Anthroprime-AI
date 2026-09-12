@@ -5,6 +5,7 @@ import { ArrowUpRight, ArrowLeft, ArrowRight, Check, Cpu } from 'lucide-react'
 import { PageHero, Reveal, SectionHead, CTAPrimary, CTAGhost, Tilt } from '../components/ui'
 import { GPUS, GPU_ORDER, gpuBySlug } from '../data/gpus'
 import { offersForFamily, PROVIDER_META, MARKET_DATA } from '../data/marketPricing'
+import { useTheme } from '../theme'
 import FinalCTA from '../components/FinalCTA'
 
 const FAMILY_MAP = { h100: 'h100', h200: 'h200', b200: 'b200', gb200: 'b200', a100: 'a100', l40s: 'l40s' }
@@ -67,6 +68,9 @@ export default function GpuDetail() {
   const gpu = gpuBySlug(slug)
   if (!gpu) return <Navigate to="/marketplace" replace />
 
+  const theme = useTheme()
+  const accent = theme === 'dark' ? gpu.accent : (gpu.accentLight || gpu.accent)
+
   const idx = GPU_ORDER.indexOf(slug)
   const prev = GPU_ORDER[(idx - 1 + GPU_ORDER.length) % GPU_ORDER.length]
   const next = GPU_ORDER[(idx + 1) % GPU_ORDER.length]
@@ -98,14 +102,14 @@ export default function GpuDetail() {
       </div>
 
       <section className="py-16 lg:py-20">
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 grid lg:grid-cols-[0.9fr_1.1fr] gap-10 lg:gap-14 items-start">
+        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-10 lg:gap-14 items-start">
           {/* 3D tilt visual card */}
           <Reveal>
             <div className="lg:sticky lg:top-28">
               <Tilt max={6}>
                 <div className="relative rounded-[24px] bg-gradient-to-b from-surface to-surface2 border border-border p-8 lg:p-10 overflow-hidden">
                   <div className="absolute inset-0 dot-pattern opacity-20" aria-hidden />
-                  <div className="absolute -top-20 -right-20 w-[280px] h-[280px] rounded-full blur-[70px]" style={{ background: `${gpu.accent}18` }} aria-hidden />
+                  <div className="absolute -top-20 -right-20 w-[280px] h-[280px] rounded-full blur-[70px]" style={{ background: `${accent}18` }} aria-hidden />
 
                   <div className="relative" style={{ transform: 'translateZ(30px)' }}>
                     <div className="flex items-center justify-between">
@@ -118,9 +122,9 @@ export default function GpuDetail() {
                       <div className="relative w-[240px] h-[240px]">
                         <div className="absolute inset-0 rounded-[28px] border-2 border-border bg-bg/60" />
                         <div className="absolute inset-[18px] rounded-[20px] border border-border bg-surface2" />
-                        <div className="absolute inset-[42px] rounded-[14px] border flex items-center justify-center" style={{ borderColor: `${gpu.accent}55`, background: `${gpu.accent}0d` }}>
+                        <div className="absolute inset-[42px] rounded-[14px] border flex items-center justify-center" style={{ borderColor: `${accent}55`, background: `${accent}0d` }}>
                           <div className="text-center">
-                            <div className="font-display font-bold text-[34px] leading-none" style={{ color: gpu.accent }}>{gpu.name}</div>
+                            <div className="font-display font-bold text-[34px] leading-none" style={{ color: accent }}>{gpu.name}</div>
                             <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-faint mt-2">{gpu.generation}</div>
                             <div className="font-mono text-[11px] text-muted mt-3">{gpu.specs['GPU memory'] || gpu.specs['GPUs per rack']}</div>
                           </div>
@@ -129,7 +133,7 @@ export default function GpuDetail() {
                         {[['top-2 left-2'], ['top-2 right-2'], ['bottom-2 left-2'], ['bottom-2 right-2']].map(pos => (
                           <div key={pos} className={`absolute ${pos} w-3 h-3 rounded-full bg-surface3 border border-border`} />
                         ))}
-                        <motion.div aria-hidden className="absolute inset-[42px] rounded-[14px]" style={{ boxShadow: `0 0 40px ${gpu.accent}33` }} animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 3, repeat: Infinity }} />
+                        <motion.div aria-hidden className="absolute inset-[42px] rounded-[14px]" style={{ boxShadow: `0 0 40px ${accent}33` }} animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 3, repeat: Infinity }} />
                       </div>
                     </div>
 
