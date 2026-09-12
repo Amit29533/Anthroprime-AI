@@ -37,8 +37,9 @@ export default {
       },
       keyframes: {
         marquee: {
+          /* 3 copies of the strip → shift exactly one copy for a seamless loop */
           '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-50%)' },
+          '100%': { transform: 'translateX(-33.3333%)' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0)' },

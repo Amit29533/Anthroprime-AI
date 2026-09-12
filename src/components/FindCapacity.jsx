@@ -1,8 +1,20 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+
+const GPU_OPTIONS = ['H100', 'H200', 'B200 / GB200', 'A100', 'L40S', 'Not sure / need advice']
+const DEPLOY_OPTIONS = ['Bare Metal', 'Managed', 'Dedicated / Reserved', 'Not sure']
+
+const DEPLOY_MAP = {
+  'Bare Metal': 'Bare Metal',
+  'Dedicated': 'Dedicated / Reserved',
+  'Reserved': 'Dedicated / Reserved',
+  'On-Demand': 'Bare Metal',
+}
 
 export default function FindCapacity() {
   const [submitted, setSubmitted] = useState(false)
+  const [flash, setFlash] = useState(false)
+  const timersRef = useRef([])
   const [form, setForm] = useState({
     gpuType: 'H100',
     gpuQty: '',
@@ -18,17 +30,37 @@ export default function FindCapacity() {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
+  // Accept prefill events from the marketplace ("Request Availability")
+  useEffect(() => {
+    const onPrefill = (e) => {
+      const d = e.detail || {}
+      const qtyMatch = d.config && d.config.match(/^(\d+)×/)
+      setForm(f => ({
+        ...f,
+        gpuType: d.gpu === 'B200' ? 'B200 / GB200' : (GPU_OPTIONS.includes(d.gpu) ? d.gpu : f.gpuType),
+        gpuQty: qtyMatch ? qtyMatch[1] : f.gpuQty,
+        location: d.region || f.location,
+        deployType: DEPLOY_MAP[d.deployment] || f.deployType,
+        workload: f.workload,
+      }))
+      setFlash(true)
+      timersRef.current.push(setTimeout(() => setFlash(false), 2400))
+    }
+    window.addEventListener('ap:prefill-capacity', onPrefill)
+    return () => window.removeEventListener('ap:prefill-capacity', onPrefill)
+  }, [])
+
+  // Clear pending timers on unmount
+  useEffect(() => () => timersRef.current.forEach(clearTimeout), [])
+
   const handleSubmit = (e) => {
     e.preventDefault()
     // Netlify form handling + WhatsApp fallback
-    const params = new URLSearchParams(form).toString()
-    
-    // Try netlify submission via fetch
     fetch('/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ 'form-name': 'gpu-capacity', ...form }).toString()
-    }).catch(()=>{})
+    }).catch(() => {})
 
     // WhatsApp message
     const lines = [
@@ -47,8 +79,21 @@ export default function FindCapacity() {
     const wa = `https://wa.me/919711554410?text=${encodeURIComponent(lines.join('\n'))}`
     window.open(wa, '_blank')
     setSubmitted(true)
-    setTimeout(() => setSubmitted(false), 6000)
+    timersRef.current.push(setTimeout(() => setSubmitted(false), 6000))
   }
+
+  const fields = [
+    { label: 'GPU Type', name: 'gpuType', type: 'select', options: GPU_OPTIONS },
+    { label: 'Number of GPUs / Nodes', name: 'gpuQty', placeholder: 'e.g. 8, 64, 1024', required: true },
+    { label: 'Required Location', name: 'location', placeholder: 'e.g. India, Europe, Global', required: true },
+    { label: 'Required Start Date', name: 'startDate', type: 'date' },
+    { label: 'Duration', name: 'duration', placeholder: 'e.g. 6 months, 3 years' },
+    { label: 'Workload', name: 'workload', placeholder: 'e.g. LLM training, inference' },
+    { label: 'Bare Metal / Managed', name: 'deployType', type: 'select', options: DEPLOY_OPTIONS },
+    { label: 'Company Name', name: 'company', placeholder: 'Acme AI Pvt Ltd', required: true },
+    { label: 'Business Email', name: 'email', type: 'email', placeholder: 'you@company.com', required: true },
+    { label: 'Phone / WhatsApp', name: 'phone', placeholder: '+91 ...' },
+  ]
 
   return (
     <section id="find-capacity" className="py-20 lg:py-28 bg-surface/50 border-y border-border/50 relative overflow-hidden">
@@ -78,7 +123,7 @@ export default function FindCapacity() {
             </div>
 
             <div className="mt-8 rounded-xl bg-bg border border-border p-4 flex gap-3">
-              <div className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">✓</div>
+              <div className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0 text-accent">✓</div>
               <div className="text-[13px] leading-[1.5] text-muted">
                 <span className="text-text font-medium">Privacy:</span> We don't publish partner names without permission. Partner identities disclosed to qualified buyers under NDA.
               </div>
@@ -92,37 +137,30 @@ export default function FindCapacity() {
             onSubmit={handleSubmit}
             name="gpu-capacity"
             data-netlify="true"
-            className="rounded-[20px] bg-bg border border-border p-6 lg:p-8 shadow-[0_16px_48px_rgba(0,0,0,0.3)]"
+            className={`rounded-[20px] bg-bg border p-6 lg:p-8 shadow-[0_16px_48px_rgba(0,0,0,0.3)] transition-all duration-500 ${flash ? 'border-accent/50 ring-2 ring-accent/30' : 'border-border'}`}
           >
             <input type="hidden" name="form-name" value="gpu-capacity" />
+            {/* Honeypot for spam bots (must match netlify-honeypot in index.html) */}
+            <p className="hidden" aria-hidden><input name="bot-field" tabIndex={-1} autoComplete="off" /></p>
             <div className="grid sm:grid-cols-2 gap-4">
-              {[
-                { label: 'GPU Type', name: 'gpuType', type: 'select', options: ['H100','H200','B200 / GB200','A100','L40S','Not sure / need advice'] },
-                { label: 'Number of GPUs / Nodes', name: 'gpuQty', placeholder: 'e.g. 8, 64, 1024', required: true },
-                { label: 'Required Location', name: 'location', placeholder: 'e.g. India, Europe, Global', required: true },
-                { label: 'Required Start Date', name: 'startDate', type: 'date' },
-                { label: 'Duration', name: 'duration', placeholder: 'e.g. 6 months, 3 years' },
-                { label: 'Workload', name: 'workload', placeholder: 'e.g. LLM training, inference' },
-                { label: 'Bare Metal / Managed', name: 'deployType', type: 'select', options: ['Bare Metal','Managed','Not sure'] },
-                { label: 'Company Name', name: 'company', placeholder: 'Acme AI Pvt Ltd', required: true },
-                { label: 'Business Email', name: 'email', type: 'email', placeholder: 'you@company.com', required: true },
-                { label: 'Phone / WhatsApp', name: 'phone', placeholder: '+91 ...' },
-              ].map((field) => (
-                <div key={field.name} className={`${['company','email','workload'].includes(field.name) ? '' : ''} ${field.name === 'workload' || field.name === 'company' ? 'sm:col-span-2' : ''} flex flex-col gap-1.5`}>
-                  <label className="font-mono text-[11px] tracking-wide uppercase text-faint">{field.label} {field.required && <span className="text-accent">*</span>}</label>
+              {fields.map((field) => (
+                <div key={field.name} className={`${field.name === 'workload' || field.name === 'company' ? 'sm:col-span-2' : ''} flex flex-col gap-1.5`}>
+                  <label htmlFor={`fc-${field.name}`} className="font-mono text-[11px] tracking-wide uppercase text-faint">
+                    {field.label} {field.required && <span className="text-accent">*</span>}
+                  </label>
                   {field.type === 'select' ? (
-                    <select name={field.name} value={form[field.name]} onChange={handleChange} className="w-full px-3.5 py-3 rounded-xl bg-surface border border-border text-[14px] text-text focus:outline-none focus:border-accent/50 focus:bg-surface2 transition-colors">
+                    <select id={`fc-${field.name}`} name={field.name} value={form[field.name]} onChange={handleChange} className="w-full px-3.5 py-3 rounded-xl bg-surface border border-border text-[14px] text-text focus:outline-none focus:border-accent/50 focus:bg-surface2 transition-colors cursor-pointer">
                       {field.options.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                   ) : (
-                    <input name={field.name} type={field.type || 'text'} value={form[field.name]} onChange={handleChange} placeholder={field.placeholder} required={field.required} className="w-full px-3.5 py-3 rounded-xl bg-surface border border-border text-[14px] text-text placeholder:text-faint focus:outline-none focus:border-accent/50 focus:bg-surface2 transition-colors" />
+                    <input id={`fc-${field.name}`} name={field.name} type={field.type || 'text'} value={form[field.name]} onChange={handleChange} placeholder={field.placeholder} required={field.required} className="w-full px-3.5 py-3 rounded-xl bg-surface border border-border text-[14px] text-text placeholder:text-faint focus:outline-none focus:border-accent/50 focus:bg-surface2 transition-colors" />
                   )}
                 </div>
               ))}
             </div>
 
             <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <button type="submit" className="px-6 py-3.5 rounded-xl bg-accent text-bg font-semibold text-[14px] hover:bg-accent2 transition-colors glow">
+              <button type="submit" className="px-6 py-3.5 rounded-xl bg-accent text-bg font-semibold text-[14px] hover:bg-accent2 hover:glow-strong transition-all glow">
                 Find GPU Capacity →
               </button>
               <span className="font-mono text-[11px] text-faint leading-[1.4]">Opens WhatsApp with your request pre-filled — nothing sends automatically. Also submitted to our desk via Netlify.</span>

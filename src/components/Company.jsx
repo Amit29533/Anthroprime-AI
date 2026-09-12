@@ -1,4 +1,11 @@
 import React from 'react'
+import { motion } from 'framer-motion'
+
+const expectations = [
+  { k: 'First response', v: 'Within 24 hours' },
+  { k: 'Feasibility read', v: '2–5 days' },
+  { k: 'Disclosure', v: 'NDA on request' },
+]
 
 export default function Company() {
   return (
@@ -26,7 +33,7 @@ export default function Company() {
               We work with a vetted panel of infrastructure operators, cloud providers and data-centre partners across India, Southeast Asia, the Middle East, Europe and North America. Partner identities are disclosed to qualified buyers under NDA as part of an active sourcing mandate — we don't publish partner names without permission.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {['Hyperscalers','Neoclouds','Colo & DC Operators','OEM & Finance','Network & Storage'].map(t => (
+              {['Hyperscalers', 'Neoclouds', 'Colo & DC Operators', 'OEM & Finance', 'Network & Storage'].map(t => (
                 <span key={t} className="font-mono text-[11px] px-2.5 py-1 rounded-full bg-surface3 border border-border text-faint">{t}</span>
               ))}
             </div>
@@ -41,7 +48,7 @@ export default function Company() {
             Talk to the desk.
           </h2>
 
-          <div className="mt-8 rounded-2xl bg-bg border border-border overflow-hidden divide-y divide-border">
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mt-8 rounded-2xl bg-bg border border-border overflow-hidden divide-y divide-border">
             <div className="flex items-center justify-between p-5">
               <span className="font-mono text-[11px] uppercase tracking-wide text-faint">Entity</span>
               <span className="text-[14px] font-medium">Anthroprime Technology Private Limited</span>
@@ -56,17 +63,26 @@ export default function Company() {
             </div>
             <div className="flex items-center justify-between p-5">
               <span className="font-mono text-[11px] uppercase tracking-wide text-faint">Email</span>
-              <span className="font-mono text-[13px] text-muted">desk@anthroprime.ai</span>
+              <a href="mailto:desk@anthroprime.ai" className="font-mono text-[13px] text-muted hover:text-accent transition-colors">desk@anthroprime.ai</a>
             </div>
+          </motion.div>
+
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            {expectations.map(x => (
+              <div key={x.k} className="rounded-xl bg-bg border border-border p-3.5 text-center hover:border-accent/20 transition-colors">
+                <div className="font-display font-semibold text-[13px] leading-tight">{x.v}</div>
+                <div className="font-mono text-[10px] text-faint uppercase mt-1">{x.k}</div>
+              </div>
+            ))}
           </div>
 
-          <a href="https://wa.me/919711554410?text=Hi%20AnthroPrime%2C%20I%27d%20like%20to%20talk%20to%20an%20AI%20infrastructure%20expert." target="_blank" rel="noopener" className="mt-6 w-full inline-flex items-center justify-center gap-2 py-4 rounded-xl bg-accent text-bg font-semibold text-[14px] hover:bg-accent2 transition-colors glow">
-            Message the Desk on WhatsApp →
-          </a>
-
-          <div className="mt-6 rounded-xl bg-accentDim border border-accent/20 p-4">
-            <div className="font-mono text-[11px] uppercase tracking-wide text-accent">Primary CTA</div>
-            <div className="font-display font-medium text-[13.5px] mt-1">Find GPU Capacity — secondary: Talk to an AI Infrastructure Expert. Every page, every section.</div>
+          <div className="mt-6 grid sm:grid-cols-2 gap-3">
+            <a href="https://wa.me/919711554410?text=Hi%20AnthroPrime%2C%20I%27d%20like%20to%20talk%20to%20an%20AI%20infrastructure%20expert." target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 py-4 rounded-xl bg-accent text-bg font-semibold text-[14px] hover:bg-accent2 transition-colors glow">
+              Message the Desk on WhatsApp →
+            </a>
+            <a href="mailto:desk@anthroprime.ai?subject=AI%20infrastructure%20enquiry" className="inline-flex items-center justify-center gap-2 py-4 rounded-xl bg-surface border border-border text-text font-medium text-[14px] hover:border-border2 hover:bg-surface2 transition-all">
+              Email the Desk
+            </a>
           </div>
         </div>
       </div>

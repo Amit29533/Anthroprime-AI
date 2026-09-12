@@ -1,8 +1,31 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, Cpu, Globe, Layers, Zap } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, Cpu, Globe, Layers, Zap } from 'lucide-react'
+
+/** Eased count-up used for hero stats */
+function useCountUp(target, { duration = 1200, delay = 700 } = {}) {
+  const [val, setVal] = useState(0)
+  useEffect(() => {
+    let raf
+    let start
+    const t = setTimeout(() => {
+      const tick = (now) => {
+        if (!start) start = now
+        const p = Math.min(1, (now - start) / duration)
+        const eased = 1 - Math.pow(1 - p, 3)
+        setVal(Math.round(target * eased))
+        if (p < 1) raf = requestAnimationFrame(tick)
+      }
+      raf = requestAnimationFrame(tick)
+    }, delay)
+    return () => { clearTimeout(t); cancelAnimationFrame(raf) }
+  }, [target, duration, delay])
+  return val
+}
 
 export default function Hero() {
+  const regions = useCountUp(5)
+
   return (
     <section id="hero" className="relative pt-[112px] pb-20 lg:pb-28 overflow-hidden">
       <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
@@ -35,7 +58,7 @@ export default function Hero() {
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="grid grid-cols-3 gap-6 mt-12 max-w-[460px] border-t border-border pt-8">
               <div>
-                <div className="font-display font-bold text-[28px] leading-none">5</div>
+                <div className="font-display font-bold text-[28px] leading-none tabular-nums">{regions}</div>
                 <div className="font-mono text-[11px] tracking-wide uppercase text-faint mt-1.5">Regions sourced</div>
               </div>
               <div>
@@ -55,7 +78,7 @@ export default function Hero() {
               <div className="absolute inset-0 dot-pattern opacity-20" />
               <div className="absolute -top-24 -right-24 w-[300px] h-[300px] bg-accent/10 rounded-full blur-[60px]" />
 
-              {/* Central Hub */}
+              {/* Central hub */}
               <div className="relative">
                 <div className="flex justify-center mb-10">
                   <div className="relative">
@@ -146,6 +169,21 @@ export default function Hero() {
           </motion.div>
         </div>
       </div>
+
+      {/* Scroll cue */}
+      <motion.a
+        href="#gpu-cloud"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.2 }}
+        className="hidden md:flex absolute left-1/2 -translate-x-1/2 bottom-3 flex-col items-center gap-1 text-faint hover:text-accent transition-colors"
+        aria-label="Scroll to GPU capacity section"
+      >
+        <span className="font-mono text-[10px] tracking-[0.25em] uppercase">Scroll</span>
+        <motion.span animate={{ y: [0, 5, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}>
+          <ChevronDown className="w-4 h-4" />
+        </motion.span>
+      </motion.a>
     </section>
   )
 }

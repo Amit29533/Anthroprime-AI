@@ -1,5 +1,14 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { Search, Compass, Rocket, Settings2, ShieldCheck } from 'lucide-react'
+
+const serviceTiles = [
+  { id: 'svc-sourcing', icon: Search, title: 'GPU Capacity Sourcing', desc: 'Requirement in → verified shortlist out. The desk searches the network across providers and geographies.' },
+  { id: null, icon: Compass, title: 'AI Infrastructure Advisory', desc: 'Architecture, TCO and provider selection before a dollar is committed.', href: '#svc-advisory' },
+  { id: 'svc-deployment', icon: Rocket, title: 'Cluster Deployment', desc: 'Kubernetes / Slurm, GPU drivers and CUDA stack — deployed production-ready.' },
+  { id: null, icon: Settings2, title: 'Managed AI Infrastructure', desc: 'Monitoring, optimization, hardening and support once clusters are live.', href: '#svc-managed' },
+  { id: 'svc-security', icon: ShieldCheck, title: 'AI Infrastructure Security', desc: 'Hardening, isolation and controlled disclosure for sensitive workloads.' },
+]
 
 const advisory = [
   'GPU workload assessment & capacity planning',
@@ -28,7 +37,7 @@ const managed = [
 
 export default function Services() {
   return (
-    <section id="services" className="py-20 lg:py-28">
+    <section id="services" className="py-20 lg:py-28 border-t border-border/50">
       <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
         <div className="max-w-[760px]">
           <div className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.14em] uppercase text-accent mb-4">
@@ -42,13 +51,51 @@ export default function Services() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6 mt-12">
+        {/* Five services at a glance (anchor targets for the Services nav) */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-12">
+          {serviceTiles.map((t, i) => {
+            const inner = (
+              <>
+                <t.icon className="w-5 h-5 text-faint group-hover:text-accent transition-colors mb-3" />
+                <div className="font-display font-semibold text-[13.5px] leading-tight group-hover:text-accent transition-colors">{t.title}</div>
+                <div className="text-[12px] leading-[1.5] text-muted mt-1.5">{t.desc}</div>
+              </>
+            )
+            return t.href ? (
+              <motion.a
+                key={t.title}
+                href={t.href}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                className="group rounded-xl bg-surface border border-border p-4 hover:border-accent/30 hover:bg-surface2 hover:-translate-y-1 transition-all"
+              >
+                {inner}
+              </motion.a>
+            ) : (
+              <motion.div
+                key={t.title}
+                id={t.id}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                className="group rounded-xl bg-surface border border-border p-4 hover:border-accent/30 hover:bg-surface2 hover:-translate-y-1 transition-all scroll-mt-28"
+              >
+                {inner}
+              </motion.div>
+            )
+          })}
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-6 mt-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             id="svc-advisory"
-            className="rounded-[20px] bg-surface border border-border p-7 lg:p-8 scroll-mt-24"
+            className="rounded-[20px] bg-surface border border-border p-7 lg:p-8 scroll-mt-28"
           >
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
@@ -61,7 +108,7 @@ export default function Services() {
               {advisory.map((item) => (
                 <li key={item} className="flex gap-3 text-[14px] leading-[1.4] text-muted">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 shrink-0" />
-                  <span id={item.includes('GPU workload') ? 'svc-sourcing' : item.includes('security') ? 'svc-security' : undefined} className="scroll-mt-24">{item}</span>
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>
@@ -73,7 +120,7 @@ export default function Services() {
             viewport={{ once: true }}
             transition={{ delay: 0.08 }}
             id="svc-managed"
-            className="rounded-[20px] bg-surface border border-border p-7 lg:p-8 scroll-mt-24"
+            className="rounded-[20px] bg-surface border border-border p-7 lg:p-8 scroll-mt-28"
           >
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
@@ -86,7 +133,7 @@ export default function Services() {
               {managed.map((item) => (
                 <li key={item} className="flex gap-3 text-[14px] leading-[1.4] text-muted">
                   <span className="w-1.5 h-1.5 rounded-full bg-faint mt-2 shrink-0" />
-                  <span id={item.includes('Cluster deployment') ? 'svc-deployment' : undefined} className="scroll-mt-24">{item}</span>
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>

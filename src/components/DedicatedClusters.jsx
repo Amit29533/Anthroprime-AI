@@ -12,6 +12,26 @@ const specs = [
 
 const useCases = ['Model Training', 'Fine-Tuning', 'Inference', 'GenAI', 'LLM', 'Computer Vision', 'Research', 'HPC']
 
+function SpecCell({ s, index }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.06 }}
+      className="p-6 lg:p-7 bg-surface hover:bg-surface2 transition-colors group"
+    >
+      <div className="flex items-start gap-4">
+        <div className="w-9 h-9 rounded-xl bg-surface3 border border-border flex items-center justify-center text-faint group-hover:text-accent group-hover:border-accent/20 transition-colors">{s.icon}</div>
+        <div>
+          <div className="font-medium text-[14.5px] leading-tight">{s.title}</div>
+          <div className="font-mono text-[12px] text-faint mt-1">{s.sub}</div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 export default function DedicatedClusters() {
   return (
     <section id="sol-clusters" className="py-20 lg:py-28 bg-surface/50 border-y border-border/50 relative overflow-hidden">
@@ -31,30 +51,10 @@ export default function DedicatedClusters() {
 
         <div className="mt-12 rounded-[20px] border border-border overflow-hidden bg-bg">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border lg:divide-y-0 border-b border-border">
-            {specs.slice(0,3).map((s) => (
-              <div key={s.title} className="p-6 lg:p-7 bg-surface hover:bg-surface2 transition-colors group">
-                <div className="flex items-start gap-4">
-                  <div className="w-9 h-9 rounded-xl bg-surface3 border border-border flex items-center justify-center text-faint group-hover:text-accent group-hover:border-accent/20 transition-colors">{s.icon}</div>
-                  <div>
-                    <div className="font-medium text-[14.5px] leading-tight">{s.title}</div>
-                    <div className="font-mono text-[12px] text-faint mt-1">{s.sub}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
+            {specs.slice(0, 3).map((s, i) => <SpecCell key={s.title} s={s} index={i} />)}
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border">
-            {specs.slice(3).map((s) => (
-              <div key={s.title} className="p-6 lg:p-7 bg-surface hover:bg-surface2 transition-colors group">
-                <div className="flex items-start gap-4">
-                  <div className="w-9 h-9 rounded-xl bg-surface3 border border-border flex items-center justify-center text-faint group-hover:text-accent group-hover:border-accent/20 transition-colors">{s.icon}</div>
-                  <div>
-                    <div className="font-medium text-[14.5px] leading-tight">{s.title}</div>
-                    <div className="font-mono text-[12px] text-faint mt-1">{s.sub}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
+            {specs.slice(3).map((s, i) => <SpecCell key={s.title} s={s} index={i + 3} />)}
           </div>
         </div>
 
@@ -71,7 +71,8 @@ export default function DedicatedClusters() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.04 }}
-                className="px-4 py-2.5 rounded-xl bg-surface border border-border font-display font-medium text-[14px] hover:border-accent/30 hover:text-accent transition-colors"
+                whileHover={{ y: -2 }}
+                className="px-4 py-2.5 rounded-xl bg-surface border border-border font-display font-medium text-[14px] hover:border-accent/30 hover:text-accent transition-colors cursor-default"
               >
                 {uc}
               </motion.span>

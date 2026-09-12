@@ -64,6 +64,26 @@ assert('No forbidden claim: We own global GPU data centers', !allSrc.includes('W
 assert('No forbidden claim: Our H200 cluster is available (as ownership)', !allSrc.includes('Our H200 cluster is available'))
 assert('Uses accurate language: Access GPU capacity through our infrastructure network', allSrc.includes('Access GPU capacity') || allSrc.includes('sourcing') || allSrc.includes('infrastructure network'))
 
+// No internal brief-notes leaked into public copy
+assert('No leaked brief note: "This section is critical"', !allSrc.includes('This section is critical'))
+assert('No leaked brief note: "Important Positioning Rule"', !allSrc.includes('Important Positioning Rule'))
+assert('No leaked brief note: "Avoid publishing partner names"', !allSrc.includes('Avoid publishing partner names'))
+assert('No leaked brief note: "Every page, every section"', !allSrc.includes('Every page, every section'))
+
+// No fabricated statistics
+assert('No fabricated "~40% faster sourcing" stat', !allSrc.includes('~40%'))
+
+// Homepage section order per the brief
+const order = ['HowItWorks', 'GlobalNetwork', 'Marketplace', 'FindCapacity', 'Services', 'WhoWeServe', 'WhyUs', 'FinalCTA']
+const positions = order.map(c => ({ c, pos: appContent.indexOf(`<${c} />`) }))
+assert('All ordered sections present in App', positions.every(p => p.pos !== -1))
+assert('Sections render in brief order', positions.every((p, i) => i === 0 || positions[i - 1].pos < p.pos))
+assert('App includes ScrollProgress + BackToTop', appContent.includes('ScrollProgress') && appContent.includes('BackToTop'))
+
+// Marquee loop must be seamless (3 copies shifted by exactly one copy width)
+const tailwindConfig = fs.readFileSync(path.join(root, 'tailwind.config.js'), 'utf-8')
+assert('Marquee keyframe shifts -33.3333% (seamless with 3 copies)', tailwindConfig.includes('-33.3333%'))
+
 // Check for premium design tokens
 const indexCss = fs.readFileSync(path.join(src, 'index.css'), 'utf-8')
 assert('index.css has glass effect', indexCss.includes('.glass'))

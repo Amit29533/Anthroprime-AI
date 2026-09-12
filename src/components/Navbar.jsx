@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Menu, X, ArrowUpRight } from 'lucide-react'
 
@@ -57,13 +57,46 @@ const nav = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [openMenu, setOpenMenu] = useState(null)
+  const [pinned, setPinned] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const navRef = useRef(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Close pinned dropdowns on Escape or outside click
+  useEffect(() => {
+    if (!openMenu) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') { setOpenMenu(null); setPinned(false) }
+    }
+    const onClick = (e) => {
+      if (navRef.current && !navRef.current.contains(e.target)) { setOpenMenu(null); setPinned(false) }
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('click', onClick)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('click', onClick)
+    }
+  }, [openMenu])
+
+  // Lock body scroll while the mobile menu is open + close on Escape
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : ''
+    const onKey = (e) => { if (e.key === 'Escape') setMobileOpen(false) }
+    if (mobileOpen) document.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = ''
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [mobileOpen])
+
+  const closeMenu = () => { setOpenMenu(null); setPinned(false) }
 
   return (
     <>
@@ -79,11 +112,24 @@ export default function Navbar() {
             </div>
           </a>
 
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav ref={navRef} className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
             {nav.map((item) => (
-              <div key={item.label} className="relative" onMouseEnter={() => item.children && setOpenMenu(item.label)} onMouseLeave={() => setOpenMenu(null)}>
+              <div
+                key={item.label}
+                className="relative"
+                onMouseEnter={() => item.children && setOpenMenu(item.label)}
+                onMouseLeave={() => { if (!pinned) setOpenMenu(null) }}
+              >
                 {item.children ? (
-                  <button className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[14px] font-medium transition-colors ${openMenu === item.label ? 'bg-surface2 text-text' : 'text-muted hover:text-text hover:bg-surface2'}`}>
+                  <button
+                    aria-haspopup="true"
+                    aria-expanded={openMenu === item.label}
+                    onClick={() => {
+                      if (openMenu === item.label && pinned) closeMenu()
+                      else { setOpenMenu(item.label); setPinned(true) }
+                    }}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[14px] font-medium transition-colors ${openMenu === item.label ? 'bg-surface2 text-text' : 'text-muted hover:text-text hover:bg-surface2'}`}
+                  >
                     {item.label}
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openMenu === item.label ? 'rotate-180' : ''}`} />
                   </button>
@@ -98,14 +144,16 @@ export default function Navbar() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
                       transition={{ duration: 0.18 }}
-                      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 min-w-[280px] glass-strong rounded-xl p-2 shadow-[0_16px_48px_rgba(0,0,0,0.5)]"
+                      className="absolute top-full left-1/2 -translate-x-1/2 pt-2.5 z-50"
                     >
-                      {item.children.map((child) => (
-                        <a key={child.label} href={child.href} className="flex items-center justify-between px-3.5 py-3 rounded-lg hover:bg-surface2 group transition-colors">
-                          <span className="text-[13.5px] font-medium text-text group-hover:text-accent transition-colors">{child.label}</span>
-                          {child.desc && <span className="font-mono text-[11px] text-faint">{child.desc}</span>}
-                        </a>
-                      ))}
+                      <div className="min-w-[280px] glass-strong rounded-xl p-2 shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
+                        {item.children.map((child) => (
+                          <a key={child.label} href={child.href} onClick={closeMenu} className="flex items-center justify-between px-3.5 py-3 rounded-lg hover:bg-surface2 group transition-colors">
+                            <span className="text-[13.5px] font-medium text-text group-hover:text-accent transition-colors">{child.label}</span>
+                            {child.desc && <span className="font-mono text-[11px] text-faint">{child.desc}</span>}
+                          </a>
+                        ))}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -120,7 +168,12 @@ export default function Navbar() {
             </a>
           </div>
 
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden w-10 h-10 rounded-lg border border-border flex items-center justify-center text-text">
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
+            className="lg:hidden w-10 h-10 rounded-lg border border-border flex items-center justify-center text-text"
+          >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
