@@ -136,5 +136,16 @@ if (fs.existsSync(dist)) {
   console.log('ℹ️  dist not found — run npm run build first (skipping dist checks)')
 }
 
+// ---------- final audit: desk-list consistency ----------
+const marketplace = read(path.join(src, 'pages/Marketplace.jsx'))
+assert('Marketplace groups off-desk SKUs under desk categories', marketplace.includes('DESK_FAMILY') && marketplace.includes("b300: 'b200'"))
+assert('Marketplace table GPU column uses desk labels only', marketplace.includes('FAMILY_LABEL[row.deskFamily]') && !marketplace.includes('{row.gpu.toUpperCase()}'))
+assert('Marketplace badge styles cover all dataset kinds', marketplace.includes("'secure'") && marketplace.includes("'community'"))
+assert('Marketplace request flow maps mi300x to desk category', marketplace.includes("row.gpu === 'mi300x' ? 'Enterprise Accelerators'"))
+const findCapacity = read(path.join(src, 'pages/FindCapacity.jsx'))
+assert('Find-capacity form offers Enterprise Accelerators', findCapacity.includes("'Enterprise Accelerators'"))
+assert('Find-capacity form keeps all desk GPU options', ['H100', 'H200', 'B200 / GB200', 'A100', 'L40S'].every(o => findCapacity.includes(`'${o}'`)))
+assert('Footer service labels are explicit (no replace chains)', layout.includes("'svc-managed': 'Managed Infra'") && !layout.includes(".replace('GPU Capacity Sourcing'"))
+
 console.log(`\n---\nTests: ${passed} passed, ${failed} failed out of ${passed + failed}`)
 process.exit(failed > 0 ? 1 : 0)

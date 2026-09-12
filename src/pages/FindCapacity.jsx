@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PageHero } from '../components/ui'
 
-const GPU_OPTIONS = ['H100', 'H200', 'B200 / GB200', 'A100', 'L40S', 'Not sure / need advice']
+const GPU_OPTIONS = ['H100', 'H200', 'B200 / GB200', 'A100', 'L40S', 'Enterprise Accelerators', 'Not sure / need advice']
 const DEPLOY_OPTIONS = ['Bare Metal', 'Managed', 'Dedicated / Reserved', 'Not sure']
 
 const FIELDS = [

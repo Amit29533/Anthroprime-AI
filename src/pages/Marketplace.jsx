@@ -8,10 +8,14 @@ import { GPUS } from '../data/gpus'
 
 /* Labels mirror the GPU Capacity Desk list: H100 · H200 · B200/GB200 · A100 · L40S · Enterprise Accelerators */
 const FAMILY_LABEL = { h100: 'H100', h200: 'H200', b200: 'B200 / GB200', a100: 'A100', l40s: 'L40S', mi300x: 'Ent. Accelerators' }
+/* SKUs outside the desk list are grouped under their desk category (Blackwell / Enterprise Accelerators) */
+const DESK_FAMILY = { b300: 'b200', gb300: 'b200', b200: 'b200', gb200: 'b200', mi300x: 'mi300x' }
 const KIND_STYLE = {
   'on-demand': 'bg-accentDim text-accent border-accent/20',
   'spot': 'bg-gold/10 text-gold border-gold/20',
   'serverless': 'bg-[#7C3AED]/10 text-[#A78BFA] border-[#7C3AED]/20',
+  'secure': 'bg-surface3 text-muted border-border',
+  'community': 'bg-surface3 text-muted border-border',
 }
 
 function slugForFamily(fam) {
@@ -32,15 +36,12 @@ export default function Marketplace() {
   }, [params])
 
   const all = useMemo(() => MARKET_DATA.offers
-    .map(([provider, gpu, variant, vram, usd, k, minGpus]) => ({ provider, gpu, variant, vram, usd, kind: k, minGpus }))
-    .filter(o => FAMILY_LABEL[o.gpu]), [])
+    .map(([provider, gpu, variant, vram, usd, k, minGpus]) => ({ provider, gpu, variant, vram, usd, kind: k, minGpus, deskFamily: DESK_FAMILY[gpu] || gpu }))
+    .filter(o => FAMILY_LABEL[o.deskFamily]), [])
 
   const filtered = useMemo(() => {
     let rows = all
-    if (family !== 'all') {
-      const fam = family === 'b200' ? ['b200', 'b300', 'gb300'] : [family]
-      rows = rows.filter(o => fam.includes(o.gpu))
-    }
+    if (family !== 'all') rows = rows.filter(o => o.deskFamily === family)
     if (kind !== 'all') rows = rows.filter(o => o.kind === kind)
     if (query.trim()) {
       const q = query.toLowerCase()
@@ -63,9 +64,12 @@ export default function Marketplace() {
   const clear = () => { setFamily('all'); setKind('all'); setQuery(''); navigate('/marketplace', { replace: true }) }
 
   const request = (row) => {
+    const gpuLabel = row.gpu === 'mi300x' ? 'Enterprise Accelerators'
+      : row.gpu.toUpperCase().startsWith('B3') || row.gpu === 'gb300' || row.gpu === 'gb200' ? 'B200 / GB200'
+      : row.gpu.toUpperCase()
     navigate('/find-capacity', {
       state: {
-        gpu: row.gpu.toUpperCase().startsWith('B3') || row.gpu === 'gb300' ? 'B200 / GB200' : row.gpu.toUpperCase(),
+        gpu: gpuLabel,
         gpuQty: row.minGpus > 1 ? String(row.minGpus) : '',
         workload: `${row.variant} · benchmarked at $${row.usd.toFixed(2)}/GPU/hr (${PROVIDER_META[row.provider]?.name || row.provider})`,
         deployType: row.kind === 'spot' ? 'Bare Metal' : 'Managed',
@@ -110,7 +114,7 @@ export default function Marketplace() {
                     </div>
                     <div className="mt-2 font-mono text-[13px]"><span className="text-accent">${s.min.toFixed(2)}</span><span className="text-faint text-[11px]">/GPU/hr low</span></div>
                     <div className="font-mono text-[10.5px] text-faint mt-0.5">{s.count} offers · {s.providerCount} providers</div>
-                    {slug && <div className="mt-2 font-mono text-[10px] text-faint group-hover:text-accent transition-colors">Specs →</div>}
+                    {slug && <div className="mt-2 font-mono text-[10px] text-faint group-hover:text-accent transition-colors">{active ? 'Clear filter ×' : 'Filter offers →'}</div>}
                   </button>
                 </Reveal>
               )
@@ -180,7 +184,7 @@ export default function Marketplace() {
                             </a>
                           </td>
                           <td className="px-5 py-3.5">
-                            <div className="font-mono font-semibold text-[13.5px]">{row.gpu.toUpperCase()}</div>
+                            <div className="font-mono font-semibold text-[13.5px]">{FAMILY_LABEL[row.deskFamily]}</div>
                             <div className="font-mono text-[11px] text-faint">{row.variant}</div>
                           </td>
                           <td className="px-5 py-3.5 font-mono text-[13px] text-muted">{row.vram} GB</td>

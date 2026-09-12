@@ -232,9 +232,12 @@ export function Footer() {
           <div>
             <div className="font-mono text-[11px] tracking-wide uppercase text-faint mb-4">Services</div>
             <div className="space-y-2.5">
-              {SERVICES.map(s => (
-                <Link key={s.id} to={`/services#${s.id}`} className="block text-[13.5px] text-muted hover:text-accent transition-colors">{s.name.replace('GPU Capacity Sourcing', 'GPU Sourcing').replace('AI Infrastructure', 'Infra')}</Link>
-              ))}
+              {SERVICES.map(s => {
+                const short = { 'svc-sourcing': 'GPU Sourcing', 'svc-advisory': 'Advisory', 'svc-deployment': 'Cluster Deployment', 'svc-managed': 'Managed Infra' }[s.id] || s.name
+                return (
+                  <Link key={s.id} to={`/services#${s.id}`} className="block text-[13.5px] text-muted hover:text-accent transition-colors">{short}</Link>
+                )
+              })}
             </div>
           </div>
 
