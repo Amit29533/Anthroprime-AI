@@ -33,7 +33,7 @@ export default function NetworkMap({ active, onActive, className = '' }) {
             >
               <line className={`diagram-line active`} x1="240" y1="240" x2={n.x} y2={n.y} opacity={active && !isActive ? 0.25 : 1} style={{ transition: 'opacity .25s' }} />
               <circle cx={n.x} cy={n.y} r={isActive ? 38 : 34} className="node" style={{ transition: 'r .25s' }} />
-              {isActive && <circle cx={n.x} cy={n.y} r="44" fill="none" stroke="#2FF2D2" strokeOpacity="0.3" strokeWidth="1.5" />}
+              {isActive && <circle cx={n.x} cy={n.y} r="44" fill="none" className="hub-pulse" strokeOpacity="0.3" strokeWidth="1.5" />}
               {n.lines ? (
                 <text x={n.x} y={n.y + 4} textAnchor="middle" className="nodelabel">{n.lines[0]}</text>
               ) : (
@@ -48,7 +48,7 @@ export default function NetworkMap({ active, onActive, className = '' }) {
 
         {/* hub */}
         <circle cx="240" cy="240" r="46" className="node hub" />
-        <circle cx="240" cy="240" r="52" fill="none" stroke="#2FF2D2" strokeOpacity="0.2" strokeWidth="4">
+        <circle cx="240" cy="240" r="52" fill="none" className="hub-pulse" strokeOpacity="0.2" strokeWidth="4">
           <animate attributeName="stroke-opacity" values="0.1;0.3;0.1" dur="3s" repeatCount="indefinite" />
         </circle>
         <text x="240" y="236" textAnchor="middle" className="nodelabel hub">AnthroPrime</text>

@@ -4,9 +4,90 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Menu, X, ArrowUpRight } from 'lucide-react'
 import ScrollProgress from './ScrollProgress'
 import BackToTop from './BackToTop'
-import { GPU_NAV } from '../data/gpus'
-import { SOLUTIONS } from '../data/solutions'
+import ThemeToggle from './ThemeToggle'
+import LogoMark from './LogoMark'
+import { GPU_NAV, GPUS } from '../data/gpus'
+import { SOLUTIONS, solutionBySlug } from '../data/solutions'
 import { SERVICES } from '../data/services'
+
+/** Per-route <title> / meta-description (the SPA ships a single index.html). */
+const PAGE_META = {
+  '/': {
+    title: 'Anthroprime.ai — Global GPU Infrastructure. One Partner.',
+    desc: 'Source and deploy enterprise AI infrastructure across a global network of GPU clouds, data centers and infrastructure providers.',
+  },
+  '/marketplace': {
+    title: 'GPU Capacity Marketplace — Anthroprime.ai',
+    desc: 'Live market reference pricing for H100, H200, B200, GB200, A100, L40S and enterprise accelerators across leading cloud providers.',
+  },
+  '/solutions': {
+    title: 'AI Infrastructure Solutions — Anthroprime.ai',
+    desc: 'Training, inference, dedicated clusters, private AI cloud, HPC and sovereign AI infrastructure — designed and sourced end-to-end.',
+  },
+  '/services': {
+    title: 'AI Infrastructure Services — Anthroprime.ai',
+    desc: 'GPU capacity sourcing, AI infrastructure advisory, cluster deployment, managed infrastructure and security.',
+  },
+  '/resources': {
+    title: 'GPU Comparison & Pricing — Anthroprime.ai',
+    desc: 'Datasheet-accurate GPU comparisons, live market pricing economics and AI infrastructure guides.',
+  },
+  '/about': {
+    title: 'About — Anthroprime.ai',
+    desc: 'The AI infrastructure practice of Anthroprime Technology. India-led, globally connected and provider-agnostic.',
+  },
+  '/contact': {
+    title: 'Contact — Anthroprime.ai',
+    desc: 'Talk to the desk on WhatsApp or email, or start with a GPU capacity request. Response within 24 hours.',
+  },
+  '/find-capacity': {
+    title: 'Find GPU Capacity — Anthroprime.ai',
+    desc: 'Tell us what you need — GPU type, quantity, location and duration — and we return a comparable shortlist.',
+  },
+}
+
+function useDocumentMeta() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    const seg = pathname.split('/').filter(Boolean)
+    let title = 'Anthroprime.ai — Global GPU Infrastructure. One Partner.'
+    let desc = ''
+
+    if (seg.length === 0) {
+      title = PAGE_META['/'].title
+      desc = PAGE_META['/'].desc
+    } else if (seg[0] === 'gpu' && seg[1]) {
+      const g = GPUS[seg[1]]
+      if (g) {
+        title = `${g.full} — Specs, Pricing & Capacity | Anthroprime.ai`
+        desc = g.desc
+      }
+    } else if (seg[0] === 'solutions' && seg[1]) {
+      const s = solutionBySlug(seg[1])
+      if (s) {
+        title = `${s.name} — Anthroprime.ai`
+        desc = s.short
+      }
+    } else if (PAGE_META[`/${seg[0]}`]) {
+      title = PAGE_META[`/${seg[0]}`].title
+      desc = PAGE_META[`/${seg[0]}`].desc
+    } else {
+      title = 'Page not found — Anthroprime.ai'
+      desc = 'The page you were looking for does not exist. Explore GPU capacity, solutions and services on Anthroprime.ai.'
+    }
+
+    document.title = title
+    if (desc) {
+      let el = document.querySelector('meta[name="description"]')
+      if (!el) {
+        el = document.createElement('meta')
+        el.setAttribute('name', 'description')
+        document.head.appendChild(el)
+      }
+      el.setAttribute('content', desc)
+    }
+  }, [pathname])
+}
 
 const nav = [
   { label: 'Home', to: '/' },
@@ -82,17 +163,11 @@ export function Navbar() {
     <>
       <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'glass-strong shadow-[0_8px_32px_rgba(0,0,0,0.4)]' : 'bg-transparent border-b border-transparent'}`}>
         <div className="max-w-[1280px] mx-auto px-6 lg:px-8 h-[72px] flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-              <div className="w-3 h-3 rounded-full bg-bg" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-display font-bold text-[17px] leading-none tracking-tight">Anthroprime<span className="text-accent">.ai</span></span>
-              <span className="font-mono text-[10px] tracking-[0.12em] text-faint uppercase mt-0.5">Global GPU Network</span>
-            </div>
+          <Link to="/" className="flex items-center shrink-0" aria-label="Anthroprime — home">
+            <LogoMark boxClassName="h-6 sm:h-8 lg:h-6 xl:h-8 w-auto" />
           </Link>
 
-          <nav ref={navRef} className="hidden lg:flex items-center gap-0.5" aria-label="Main">
+          <nav ref={navRef} className="hidden lg:flex items-center gap-0" aria-label="Main">
             {nav.map((item) => (
               <div
                 key={item.label}
@@ -105,13 +180,13 @@ export function Navbar() {
                     aria-haspopup="true"
                     aria-expanded={openMenu === item.label}
                     onClick={() => openMenu === item.label && pinned ? closeMenu() : (setOpenMenu(item.label), setPinned(true))}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[14px] font-medium transition-colors ${openMenu === item.label ? 'bg-surface2 text-text' : 'text-muted hover:text-text hover:bg-surface2'}`}
+                    className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[14px] font-medium transition-colors ${openMenu === item.label ? 'bg-surface2 text-text' : 'text-muted hover:text-text hover:bg-surface2'}`}
                   >
                     {item.label}
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openMenu === item.label ? 'rotate-180' : ''}`} />
                   </button>
                 ) : (
-                  <NavLink to={item.to} end className={({ isActive }) => `px-3.5 py-2 rounded-lg text-[14px] font-medium transition-colors ${isActive ? 'text-text bg-surface2' : 'text-muted hover:text-text hover:bg-surface2'}`}>
+                  <NavLink to={item.to} end className={({ isActive }) => `px-2.5 py-2 rounded-lg text-[14px] font-medium transition-colors ${isActive ? 'text-text bg-surface2' : 'text-muted hover:text-text hover:bg-surface2'}`}>
                     {item.label}
                   </NavLink>
                 )}
@@ -140,16 +215,20 @@ export function Navbar() {
             ))}
           </nav>
 
-          <div className="hidden lg:flex items-center gap-3">
-            <Link to="/contact" className="px-4 py-2.5 rounded-lg text-[13.5px] font-medium text-muted hover:text-text border border-border hover:border-border2 transition-all">Talk to an Expert</Link>
-            <Link to="/find-capacity" className="px-4 py-2.5 rounded-lg text-[13.5px] font-semibold bg-accent text-bg hover:bg-accent2 transition-colors flex items-center gap-1.5">
+          <div className="hidden lg:flex items-center gap-2">
+            <ThemeToggle />
+            <Link to="/contact" className="hidden xl:inline-flex px-4 py-2.5 rounded-lg text-[13.5px] font-medium text-muted hover:text-text border border-border hover:border-border2 transition-all">Talk to an Expert</Link>
+            <Link to="/find-capacity" className="px-3 py-2.5 rounded-lg text-[13.5px] font-semibold bg-accent text-bg hover:bg-accent2 transition-colors flex items-center gap-1.5 whitespace-nowrap">
               Find GPU Capacity <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <button onClick={() => setMobileOpen(!mobileOpen)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} className="lg:hidden w-10 h-10 rounded-lg border border-border flex items-center justify-center text-text">
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          <div className="lg:hidden flex items-center gap-2">
+            <ThemeToggle />
+            <button onClick={() => setMobileOpen(!mobileOpen)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} className="w-10 h-10 rounded-lg border border-border flex items-center justify-center text-text">
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -195,11 +274,8 @@ export function Footer() {
       <div className="relative max-w-[1280px] mx-auto px-6 lg:px-8">
         <div className="grid lg:grid-cols-[1.4fr_repeat(4,1fr)] gap-10">
           <div>
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
-                <div className="w-2.5 h-2.5 rounded-full bg-bg" />
-              </div>
-              <span className="font-display font-bold text-[16px]">Anthroprime<span className="text-accent">.ai</span></span>
+            <div className="flex items-center">
+              <LogoMark boxClassName="h-9 w-auto" textClassName="text-[22px]" />
             </div>
             <p className="text-[13px] leading-[1.5] text-muted mt-4 max-w-[280px]">
               An asset-light AI infrastructure advisory and GPU capacity sourcing desk. We source and verify — you contract directly with the provider. <span className="text-text font-medium">Global GPU Infrastructure. One Partner.</span>
@@ -285,12 +361,13 @@ export function ScrollManager() {
 
 export default function Layout() {
   const { pathname } = useLocation()
+  useDocumentMeta()
   return (
     <div className="min-h-screen bg-bg relative overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none" aria-hidden>
         <div className="absolute inset-0 dot-pattern opacity-[0.15]" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-accent/5 rounded-full blur-[120px]" />
-        <div className="absolute top-[40%] right-0 w-[800px] h-[800px] bg-[#7C3AED]/5 rounded-full blur-[120px]" />
+        <div className="absolute top-[40%] right-0 w-[800px] h-[800px] bg-purple/5 rounded-full blur-[120px]" />
       </div>
 
       <ScrollProgress />

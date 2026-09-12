@@ -25,7 +25,7 @@ export function SolutionsIndex() {
             return (
               <Reveal key={s.slug} delay={i * 0.05}>
                 <Link to={`/solutions/${s.slug}`} className="group block relative overflow-hidden rounded-2xl bg-surface border border-border p-7 hover:border-accent/25 hover:bg-surface2 hover:-translate-y-1 transition-all h-full">
-                  <div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'radial-gradient(240px circle at 75% 10%, rgba(47,242,210,0.07), transparent 65%)' }} />
+                  <div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'radial-gradient(240px circle at 75% 10%, rgb(var(--c-accent) / 0.07), transparent 65%)' }} />
                   <div className="relative">
                     <div className="w-11 h-11 rounded-xl bg-surface3 border border-border flex items-center justify-center text-faint group-hover:text-accent group-hover:border-accent/20 transition-colors mb-5">
                       <Icon className="w-5 h-5" />

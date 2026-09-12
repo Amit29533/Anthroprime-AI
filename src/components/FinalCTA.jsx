@@ -11,7 +11,7 @@ export default function FinalCTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="relative rounded-[24px] bg-[#0E151E] border border-border overflow-hidden p-10 lg:p-16 text-center"
+          className="relative rounded-[24px] bg-surface2 border border-border overflow-hidden p-10 lg:p-16 text-center"
         >
           <div className="absolute inset-0" aria-hidden>
             <div className="absolute inset-0 bg-gradient-to-b from-accent/10 via-transparent to-transparent" />
@@ -24,22 +24,22 @@ export default function FinalCTA() {
           </div>
 
           <div className="relative">
-            <h2 className="font-display font-bold text-[32px] lg:text-[48px] leading-[0.95] tracking-[-0.02em] text-white">
+            <h2 className="font-display font-bold text-[32px] lg:text-[48px] leading-[0.95] tracking-[-0.02em] text-text">
               Need 8 GPUs or 8,000?
             </h2>
-            <p className="text-[16px] lg:text-[18px] leading-[1.5] text-[#8A9BB0] max-w-[560px] mx-auto mt-4">
+            <p className="text-[16px] lg:text-[18px] leading-[1.5] text-muted max-w-[560px] mx-auto mt-4">
               Tell us what you need. We'll identify the right infrastructure, location and commercial model.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link to="/find-capacity" className="px-7 py-3.5 rounded-xl bg-accent text-bg font-semibold text-[14.5px] hover:bg-accent2 transition-colors glow-strong">
                 Find GPU Capacity →
               </Link>
-              <Link to="/contact" className="px-7 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white font-medium text-[14.5px] hover:bg-white/10 transition-colors">
+              <Link to="/contact" className="px-7 py-3.5 rounded-xl bg-bg/40 border border-border2 text-text font-medium text-[14.5px] hover:bg-bg/70 transition-colors">
                 Talk to an Expert
               </Link>
             </div>
 
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 font-mono text-[11px] text-[#5A6B80]">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 font-mono text-[11px] text-faint">
               <span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent" /> No lock-in</span>
               <span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent" /> NDA-controlled disclosure</span>
               <span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent" /> Provider-agnostic</span>

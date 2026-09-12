@@ -10,7 +10,8 @@ import WhoWeServe from '../components/WhoWeServe'
 import WhyUs from '../components/WhyUs'
 import FinalCTA from '../components/FinalCTA'
 import { GPUS, GPU_ORDER } from '../data/gpus'
-import { marketSummary, MARKET_DATA } from '../data/marketPricing'
+import { marketSummary, MARKET_DATA, PROVIDER_META } from '../data/marketPricing'
+import { useTheme } from '../theme'
 
 const Globe3D = lazy(() => import('../components/Globe3D'))
 
@@ -27,7 +28,7 @@ function Hero() {
 
       <div className="relative max-w-[1280px] mx-auto px-6 lg:px-8">
         <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center">
-        <div className="max-w-[720px]">
+        <div className="max-w-[720px] min-w-0">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface/80 backdrop-blur border border-border text-[11px] font-mono tracking-widest uppercase text-accent">
             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
             Provider-agnostic • Global sourcing • Enterprise scale
@@ -51,29 +52,31 @@ function Hero() {
             <CTAGhost to="/contact">Talk to an AI Infrastructure Expert</CTAGhost>
           </motion.div>
 
-          {/* GPU strip */}
+          {/* GPU strip — single-line marquee (faithful to the original GPU Capacity Desk marquee band) */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42 }} className="mt-10">
             <div className="font-mono text-[10.5px] tracking-[0.18em] uppercase text-faint mb-3">Accelerators across our network</div>
-            <div className="flex flex-wrap gap-2">
-              {GPU_ORDER.map((slug, i) => {
-                const g = GPUS[slug]
-                return (
-                  <motion.div key={slug} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 + i * 0.07 }}>
-                    <Link to={`/gpu/${slug}`} className="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/80 backdrop-blur border border-border hover:border-accent/40 hover:bg-surface2 transition-all">
-                      <span className="font-mono font-semibold text-[13px]">{g.name}</span>
-                      <span className="font-mono text-[10.5px] text-faint">{g.chips[0]}</span>
+            <div className="relative overflow-hidden fade-x">
+              <div className="gpu-marquee-track">
+                {[0, 1, 2].map((copy) => (
+                  <div key={copy} className="gpu-marquee-copy" aria-hidden={copy > 0}>
+                    {GPU_ORDER.map((slug) => {
+                      const g = GPUS[slug]
+                      return (
+                        <Link key={slug} to={`/gpu/${slug}`} tabIndex={copy === 0 ? 0 : -1} className="group inline-flex shrink-0 items-center gap-2 px-4 py-2 rounded-full bg-surface/80 backdrop-blur border border-border hover:border-accent/40 hover:bg-surface2 transition-all whitespace-nowrap">
+                          <span className="font-mono font-semibold text-[13px]">{g.name}</span>
+                          <span className="font-mono text-[10.5px] text-faint">{g.chips[0]}</span>
+                          <ArrowUpRight className="w-3 h-3 text-faint group-hover:text-accent transition-colors" />
+                        </Link>
+                      )
+                    })}
+                    <Link to="/marketplace?gpu=mi300x" tabIndex={copy === 0 ? 0 : -1} className="group inline-flex shrink-0 items-center gap-2 px-4 py-2 rounded-full bg-surface/80 backdrop-blur border border-border hover:border-accent/40 hover:bg-surface2 transition-all whitespace-nowrap">
+                      <span className="font-mono font-semibold text-[13px]">Enterprise Accelerators</span>
+                      <span className="font-mono text-[10.5px] text-faint">On Request</span>
                       <ArrowUpRight className="w-3 h-3 text-faint group-hover:text-accent transition-colors" />
                     </Link>
-                  </motion.div>
-                )
-              })}
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 + 6 * 0.07 }}>
-                <Link to="/marketplace?gpu=mi300x" className="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/80 backdrop-blur border border-border hover:border-accent/40 hover:bg-surface2 transition-all">
-                  <span className="font-mono font-semibold text-[13px]">Enterprise Accelerators</span>
-                  <span className="font-mono text-[10.5px] text-faint">On Request</span>
-                  <ArrowUpRight className="w-3 h-3 text-faint group-hover:text-accent transition-colors" />
-                </Link>
-              </motion.div>
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
 
@@ -81,7 +84,7 @@ function Hero() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="grid grid-cols-3 gap-6 mt-12 max-w-[520px] border-t border-border pt-7">
             <Stat value="5" label="Regions sourced" />
             <Stat value="8–8K+" label="GPUs per mandate" />
-            <Stat value="34" label="Providers tracked" />
+            <Stat value={String(Object.keys(PROVIDER_META).length)} label="Providers tracked" />
           </motion.div>
         </div>
 
@@ -119,19 +122,25 @@ function MarketTicker() {
 
   return (
     <Link to="/marketplace" className="block border-y border-border bg-surface/60 hover:bg-surface transition-colors group">
-      <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-3.5 flex items-center gap-6 overflow-hidden">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-3.5 flex items-center gap-6">
         <span className="hidden sm:inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.15em] uppercase text-faint shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> Market reference · {MARKET_DATA.asOf}
         </span>
-        <div className="flex items-center gap-6 overflow-hidden fade-x">
-          {rows.map(r => (
-            <span key={r.family} className="inline-flex items-center gap-2 font-mono text-[12.5px] whitespace-nowrap">
-              <span className="font-semibold text-text uppercase">{TICKER_LABEL[r.family] || r.family}</span>
-              <span className="text-faint">from</span>
-              <span className="text-accent">${r.min.toFixed(2)}/hr</span>
-              <span className="text-faint text-[11px]">· {r.providerCount} providers</span>
-            </span>
-          ))}
+        <div className="flex-1 min-w-0 overflow-hidden fade-x">
+          <div className="ticker-track">
+            {[0, 1].map((copy) => (
+              <div key={copy} className="ticker-copy" aria-hidden={copy > 0}>
+                {rows.map(r => (
+                  <span key={r.family} className="inline-flex items-center gap-2 font-mono text-[12.5px] whitespace-nowrap">
+                    <span className="font-semibold text-text uppercase">{TICKER_LABEL[r.family] || r.family}</span>
+                    <span className="text-faint">from</span>
+                    <span className="text-accent">${r.min.toFixed(2)}/hr</span>
+                    <span className="text-faint text-[11px]">· {r.providerCount} providers</span>
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
         <span className="ml-auto hidden md:inline-flex items-center gap-1 font-mono text-[11.5px] text-accent shrink-0">Open marketplace <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" /></span>
       </div>
@@ -142,6 +151,7 @@ function MarketTicker() {
 /* ---------- GPU Capacity Aggregation (compact) ---------- */
 function GpuCloudSection() {
   const navigate = useNavigate()
+  const theme = useTheme()
   const featured = ['h100', 'h200', 'b200', 'a100']
 
   return (
@@ -167,7 +177,7 @@ function GpuCloudSection() {
               <Reveal key={slug} delay={i * 0.07}>
                 <Tilt>
                   <Link to={`/gpu/${slug}`} className="group block relative overflow-hidden rounded-2xl bg-surface border border-border p-6 hover:border-accent/30 hover:bg-surface2 transition-all h-full">
-                    <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 w-40 h-40 rounded-full blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `${g.accent}22` }} />
+                    <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 w-40 h-40 rounded-full blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `${theme === 'dark' ? g.accent : (g.accentLight || g.accent)}22` }} />
                     <div className="relative">
                       <div className="flex items-center justify-between">
                         <span className={`font-mono text-[10px] tracking-wide uppercase px-2.5 py-1 rounded-full border ${g.generation === 'Blackwell' ? 'bg-gold/10 text-gold border-gold/20' : g.generation === 'Hopper' ? 'bg-accentDim text-accent border-accent/20' : 'bg-surface3 text-faint border-border'}`}>

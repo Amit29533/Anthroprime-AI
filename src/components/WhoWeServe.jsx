@@ -35,7 +35,7 @@ export default function WhoWeServe() {
               className="group rounded-2xl bg-bg border border-border p-6 hover:border-accent/20 hover:bg-surface2 hover:-translate-y-1 transition-all relative overflow-hidden"
             >
               <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-accent/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'radial-gradient(220px circle at 30% 20%, rgba(47,242,210,0.06), transparent 65%)' }} />
+              <div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'radial-gradient(220px circle at 30% 20%, rgb(var(--c-accent) / 0.06), transparent 65%)' }} />
               <div className="relative">
                 <div className="w-10 h-10 rounded-xl bg-surface3 border border-border flex items-center justify-center text-faint group-hover:text-accent group-hover:border-accent/20 transition-colors mb-4">
                   <c.icon className="w-5 h-5" />

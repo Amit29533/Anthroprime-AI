@@ -13,7 +13,7 @@ const DESK_FAMILY = { b300: 'b200', gb300: 'b200', b200: 'b200', gb200: 'b200', 
 const KIND_STYLE = {
   'on-demand': 'bg-accentDim text-accent border-accent/20',
   'spot': 'bg-gold/10 text-gold border-gold/20',
-  'serverless': 'bg-[#7C3AED]/10 text-[#A78BFA] border-[#7C3AED]/20',
+  'serverless': 'bg-purple/10 text-purple border-purple/25',
   'secure': 'bg-surface3 text-muted border-border',
   'community': 'bg-surface3 text-muted border-border',
 }

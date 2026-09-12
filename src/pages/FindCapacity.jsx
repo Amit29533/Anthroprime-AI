@@ -6,6 +6,18 @@ import { PageHero } from '../components/ui'
 const GPU_OPTIONS = ['H100', 'H200', 'B200 / GB200', 'A100', 'L40S', 'Enterprise Accelerators', 'Not sure / need advice']
 const DEPLOY_OPTIONS = ['Bare Metal', 'Managed', 'Dedicated / Reserved', 'Not sure']
 
+/** Normalize incoming prefill values (from GPU detail pages, marketplace & comparison tool)
+ *  into one of the selectable options — e.g. 'B200' / 'GB200' → 'B200 / GB200'. */
+const GPU_ALIASES = {
+  'B200': 'B200 / GB200',
+  'GB200': 'B200 / GB200',
+  'B200 / GB200': 'B200 / GB200',
+  'MI300X': 'Enterprise Accelerators',
+  'MI300': 'Enterprise Accelerators',
+  'mi300x': 'Enterprise Accelerators',
+}
+const normalizeGpu = (g) => (GPU_OPTIONS.includes(g) ? g : GPU_ALIASES[g] || null)
+
 const FIELDS = [
   { label: 'GPU Type', name: 'gpuType', type: 'select', options: GPU_OPTIONS },
   { label: 'Number of GPUs / Nodes', name: 'gpuQty', placeholder: 'e.g. 8, 64, 1024', required: true },
@@ -33,7 +45,7 @@ export default function FindCapacity() {
     const s = state || {}
     return {
       ...DEFAULTS,
-      gpuType: GPU_OPTIONS.includes(s.gpu) ? s.gpu : DEFAULTS.gpuType,
+      gpuType: normalizeGpu(s.gpu) || DEFAULTS.gpuType,
       gpuQty: s.gpuQty || '',
       location: s.location || '',
       workload: s.workload || '',

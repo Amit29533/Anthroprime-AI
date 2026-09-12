@@ -19,6 +19,7 @@ export const GPUS = {
     tagline: 'The workhorse of enterprise AI.',
     desc: 'The most deployed data-center GPU for large-scale training and high-throughput inference. Sourced in SXM and PCIe form factors across our infrastructure network — India, APAC, Middle East, Europe and North America.',
     accent: '#2FF2D2',
+    accentLight: '#0F766E',
     status: 'Sourcing network active',
     specs: {
       'GPU memory': '80 GB HBM3',
@@ -63,6 +64,7 @@ export const GPUS = {
     tagline: 'Hopper with 76% more memory.',
     desc: '141 GB of HBM3e at 4.8 TB/s makes H200 the memory-bandwidth champion of the Hopper generation — the default choice for long-context LLM inference and memory-bound training, with the same software stack as H100.',
     accent: '#2FF2D2',
+    accentLight: '#0F766E',
     status: 'Sourcing network active',
     specs: {
       'GPU memory': '141 GB HBM3e',
@@ -106,6 +108,7 @@ export const GPUS = {
     tagline: 'Frontier-class training silicon.',
     desc: '208 billion transistors, 192 GB HBM3e and native FP4 give B200 roughly 2.3× the FP8 throughput of H100 at the same rack footprint. We track Blackwell ramp availability across the network and source on behalf of qualified mandates.',
     accent: '#F5C518',
+    accentLight: '#B45309',
     status: 'Availability tracked · sourced on mandate',
     specs: {
       'GPU memory': '192 GB HBM3e',
@@ -148,6 +151,7 @@ export const GPUS = {
     tagline: 'Rack-scale supercomputing for AI.',
     desc: 'The GB200 NVL72 wires 72 Blackwell GPUs and 36 Grace CPUs into one liquid-cooled rack with 13.5 TB of HBM3e — a single NVLink domain for trillion-parameter training and real-time inference. Sourced for qualified large-scale mandates.',
     accent: '#F5C518',
+    accentLight: '#B45309',
     status: 'Availability tracked · sourced on mandate',
     specs: {
       'GPUs per rack': '72× B200 · liquid-cooled rack',
@@ -189,6 +193,7 @@ export const GPUS = {
     tagline: 'The proven value platform.',
     desc: 'Still the most cost-effective path to serious training and fine-tuning capacity. Abundant supply across our network makes A100 the economics play — especially with MIG partitioning for shared clusters.',
     accent: '#8A9BB0',
+    accentLight: '#475569',
     status: 'Sourcing network active',
     specs: {
       'GPU memory': '80 GB or 40 GB HBM2e',
@@ -234,6 +239,7 @@ export const GPUS = {
     tagline: 'Inference and graphics convergence.',
     desc: 'Ada Lovelace for the data center: 48 GB GDDR6, strong FP8 inference and built-in video engines. The efficient choice for serving, fine-tuning and AI + graphics pipelines where HBM is not required.',
     accent: '#8A9BB0',
+    accentLight: '#475569',
     status: 'Sourcing network active',
     specs: {
       'GPU memory': '48 GB GDDR6 with ECC',
