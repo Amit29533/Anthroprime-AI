@@ -67,6 +67,13 @@ function Hero() {
                   </motion.div>
                 )
               })}
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 + 6 * 0.07 }}>
+                <Link to="/marketplace?gpu=mi300x" className="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/80 backdrop-blur border border-border hover:border-accent/40 hover:bg-surface2 transition-all">
+                  <span className="font-mono font-semibold text-[13px]">Enterprise Accelerators</span>
+                  <span className="font-mono text-[10.5px] text-faint">On Request</span>
+                  <ArrowUpRight className="w-3 h-3 text-faint group-hover:text-accent transition-colors" />
+                </Link>
+              </motion.div>
             </div>
           </motion.div>
 
