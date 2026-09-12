@@ -87,6 +87,8 @@ function CompareTool() {
   )
 }
 
+const ECON_LABEL = { h100: 'H100', h200: 'H200', b200: 'B200 / GB200', a100: 'A100', l40s: 'L40S', mi300x: 'Ent. Accelerators' }
+
 function Economics() {
   const summary = marketSummary().filter(s => ['h100', 'h200', 'b200', 'a100', 'l40s'].includes(s.family))
   const max = Math.max(...summary.map(s => s.median))
@@ -106,7 +108,7 @@ function Economics() {
           const pm = PROVIDER_META[s.cheapest?.provider]
           return (
             <div key={s.family} className="grid grid-cols-[70px_1fr_150px] sm:grid-cols-[90px_1fr_220px] items-center gap-4">
-              <div className="font-mono font-bold text-[13.5px] uppercase">{s.family}</div>
+              <div className="font-mono font-bold text-[13.5px]">{ECON_LABEL[s.family] || s.family}</div>
               <div className="h-7 rounded-lg bg-bg border border-border overflow-hidden relative">
                 <motion.div
                   initial={{ width: 0 }}

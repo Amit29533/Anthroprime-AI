@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowUpRight, ArrowRight, Cpu, Layers, Zap, Globe, Server, Rocket, Network } from 'lucide-react'
 import { Tag, Reveal, SectionHead, CTAPrimary, CTAGhost, Stat, Tilt } from '../components/ui'
+import CapacityGraph from '../components/CapacityGraph'
 import HowItWorks from '../components/HowItWorks'
 import GlobalNetwork from '../components/GlobalNetwork'
 import WhoWeServe from '../components/WhoWeServe'
@@ -17,15 +18,15 @@ const Globe3D = lazy(() => import('../components/Globe3D'))
 function Hero() {
   return (
     <section id="hero" className="relative pt-[104px] lg:pt-[120px] pb-10 lg:pb-16 overflow-hidden">
-      {/* 3D globe background, right-weighted */}
-      <div className="absolute inset-y-0 right-[-12%] w-[70%] min-w-[520px] opacity-90 hidden md:block" aria-hidden>
+      {/* 3D globe ambient background, right-weighted */}
+      <div className="absolute inset-y-0 right-[-18%] w-[75%] min-w-[520px] opacity-45 hidden lg:block" aria-hidden>
         <Suspense fallback={null}>
           <Globe3D className="w-full h-full" />
         </Suspense>
       </div>
-      <div className="absolute inset-y-0 right-0 w-[45%] bg-gradient-to-l from-transparent via-transparent to-bg pointer-events-none hidden md:block" aria-hidden />
 
       <div className="relative max-w-[1280px] mx-auto px-6 lg:px-8">
+        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center">
         <div className="max-w-[720px]">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface/80 backdrop-blur border border-border text-[11px] font-mono tracking-widest uppercase text-accent">
             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
@@ -76,12 +77,34 @@ function Hero() {
             <Stat value="34" label="Providers tracked" />
           </motion.div>
         </div>
+
+        {/* Capacity Graph diagram (from the original GPU Capacity Desk) */}
+        <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5, duration: 0.7 }} className="relative mt-10 lg:mt-0">
+          <div className="relative rounded-[24px] bg-gradient-to-b from-surface/90 to-surface2/90 backdrop-blur border border-border p-6 lg:p-8 overflow-hidden">
+            <div className="absolute inset-0 dot-pattern opacity-15" aria-hidden />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-mono text-[10.5px] tracking-[0.18em] uppercase text-faint">How the desk works</span>
+                <span className="inline-flex items-center gap-2 font-mono text-[10px] text-accent">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> live
+                </span>
+              </div>
+              <CapacityGraph />
+              <div className="mt-4 flex items-center justify-center gap-2 font-mono text-[10.5px] text-faint">
+                Requirement in → network search → verified capacity out
+              </div>
+            </div>
+          </div>
+        </motion.div>
+        </div>
       </div>
     </section>
   )
 }
 
 /* ---------- Live market ticker ---------- */
+const TICKER_LABEL = { h100: 'H100', h200: 'H200', b200: 'B200 / GB200', a100: 'A100', l40s: 'L40S', mi300x: 'Ent. Accelerators' }
+
 function MarketTicker() {
   const summary = marketSummary()
   const order = ['h100', 'h200', 'b200', 'a100', 'l40s', 'mi300x']
@@ -96,7 +119,7 @@ function MarketTicker() {
         <div className="flex items-center gap-6 overflow-hidden fade-x">
           {rows.map(r => (
             <span key={r.family} className="inline-flex items-center gap-2 font-mono text-[12.5px] whitespace-nowrap">
-              <span className="font-semibold text-text uppercase">{r.family}</span>
+              <span className="font-semibold text-text uppercase">{TICKER_LABEL[r.family] || r.family}</span>
               <span className="text-faint">from</span>
               <span className="text-accent">${r.min.toFixed(2)}/hr</span>
               <span className="text-faint text-[11px]">· {r.providerCount} providers</span>

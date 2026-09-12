@@ -69,3 +69,20 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---- Diagram system (ported from the original GPU Capacity Desk artifact) ---- */
+.diagram-line { stroke: #223047; stroke-width: 1; }
+.diagram-line.active {
+  stroke: #2FF2D2;
+  stroke-dasharray: 4 4;
+  animation: diagram-dash 2.4s linear infinite;
+}
+@keyframes diagram-dash { to { stroke-dashoffset: -32; } }
+.diagram .node { fill: #0D1420; stroke: #223047; stroke-width: 1; transition: stroke 0.25s, fill 0.25s; }
+.diagram .node.hub { fill: #0A1A18; stroke: #2FF2D2; stroke-width: 1.5; }
+.diagram .nodelabel { fill: #8A9BB0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; }
+.diagram .nodelabel.hub { fill: #E6EDF5; font-weight: 600; font-size: 11px; }
+.diagram .nodelabel.big { font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 13px; fill: #E6EDF5; }
+.diagram g.region .node { cursor: pointer; }
+.diagram g.region:hover .node, .diagram g.region.active .node { stroke: #2FF2D2; stroke-width: 1.5; }
+.diagram g.region.active .nodelabel { fill: #2FF2D2; }

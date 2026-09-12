@@ -60,6 +60,19 @@ assert('Home renders brief sections in order', ['GpuCloudSection', 'ClustersSect
   .every((c, i, arr) => i === 0 || homeRender.indexOf(arr[i - 1]) < homeRender.indexOf(c)))
 assert('Home uses 3D globe', home.includes('Globe3D'))
 
+// ---------- diagrams ported from the original GPU Capacity Desk artifact ----------
+assert('CapacityGraph diagram component exists', fs.existsSync(path.join(src, 'components/CapacityGraph.jsx')))
+assert('NetworkMap diagram component exists', fs.existsSync(path.join(src, 'components/NetworkMap.jsx')))
+const capGraph = read(path.join(src, 'components/CapacityGraph.jsx'))
+assert('CapacityGraph has hub + nodes', ['AnthroPrime', 'Capacity Graph', 'Your', 'Requirement', 'Verified', 'Hyperscalers', 'Neoclouds', 'Data Centers', 'OEM / Finance'].every(t => capGraph.includes(t)))
+assert('Home renders CapacityGraph', home.includes('CapacityGraph'))
+assert('GlobalNetwork renders NetworkMap', read(path.join(src, 'components/GlobalNetwork.jsx')).includes('NetworkMap'))
+const netMap = read(path.join(src, 'components/NetworkMap.jsx'))
+assert('NetworkMap has 5 regions', ['India', 'Southeast Asia', 'Middle East', 'Europe', 'North America'].every(t => netMap.includes(t)))
+
+// ---------- GPU list matches the desk list ----------
+assert('Home GPU strip = desk GPU list', ['h100', 'h200', 'b200', 'gb200', 'a100', 'l40s'].every(g => home.includes(`\`/gpu/${g}\``) || read(path.join(src, 'data/gpus.js')).includes(`'${g}'`)))
+
 // ---------- GPU spec accuracy (per NVIDIA datasheets) ----------
 const gpus = read(path.join(data, 'gpus.js'))
 assert('H100: 80 GB HBM3 + 3.35 TB/s', gpus.includes('80 GB HBM3') && gpus.includes('3.35 TB/s'))

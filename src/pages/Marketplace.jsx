@@ -6,7 +6,8 @@ import { PageHero, Reveal, CTAPrimary } from '../components/ui'
 import { MARKET_DATA, PROVIDER_META, marketSummary } from '../data/marketPricing'
 import { GPUS } from '../data/gpus'
 
-const FAMILY_LABEL = { h100: 'H100', h200: 'H200', b200: 'Blackwell', a100: 'A100', l40s: 'L40S', mi300x: 'MI300X' }
+/* Labels mirror the GPU Capacity Desk list: H100 · H200 · B200/GB200 · A100 · L40S · Enterprise Accelerators */
+const FAMILY_LABEL = { h100: 'H100', h200: 'H200', b200: 'B200 / GB200', a100: 'A100', l40s: 'L40S', mi300x: 'Ent. Accelerators' }
 const KIND_STYLE = {
   'on-demand': 'bg-accentDim text-accent border-accent/20',
   'spot': 'bg-gold/10 text-gold border-gold/20',
