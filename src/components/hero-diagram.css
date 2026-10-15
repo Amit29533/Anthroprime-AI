@@ -1,0 +1,261 @@
+.page-hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 64px);
+  align-items: center;
+}
+.page-hero-copy {
+  min-width: 0;
+}
+.page-hero-copy > p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: rgb(var(--c-muted));
+  margin-top: 22px;
+  max-width: 670px;
+}
+.page-hero-layout h1 {
+  font-size: clamp(44px, 4.6vw, 66px);
+}
+.hero-diagram {
+  --diagram-core-a: #344c8c;
+  --diagram-core-b: #172746;
+  margin: 0;
+  min-width: 0;
+  position: relative;
+  padding: 20px;
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgb(var(--c-surface)), rgb(var(--c-bg)));
+  box-shadow: 0 18px 60px rgb(var(--c-accent) / 0.05);
+  color: rgb(var(--c-accent));
+  overflow: hidden;
+}
+.dark .hero-diagram {
+  --diagram-core-a: #3a4e7e;
+  --diagram-core-b: #17243e;
+}
+.diagram-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgb(var(--c-muted));
+}
+.diagram-heading > span:last-child {
+  color: rgb(var(--c-gold));
+  white-space: nowrap;
+}
+.diagram-canvas {
+  width: 100%;
+  display: block;
+  margin: 14px 0 8px;
+  overflow: visible;
+}
+.diagram-traces {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0.4;
+  fill: none;
+}
+.diagram-signal {
+  stroke-dasharray: 7 12;
+  animation: diagram-flow 6s linear infinite;
+  stroke: rgb(var(--c-gold));
+  stroke-width: 2;
+  opacity: 0.85;
+}
+.diagram-active-2 .diagram-traces {
+  opacity: 1;
+  stroke: rgb(var(--c-gold));
+}
+.diagram-package {
+  fill: rgb(var(--c-surface2));
+  stroke: rgb(var(--c-border));
+}
+.diagram-pin {
+  stroke: currentColor;
+  opacity: 0.5;
+  stroke-width: 3;
+}
+.diagram-core {
+  stroke: rgb(var(--c-gold));
+  stroke-width: 1;
+}
+.diagram-memory {
+  fill: rgb(var(--c-surface2));
+  stroke: currentColor;
+  opacity: 0.45;
+}
+.diagram-memory.is-active {
+  opacity: 1;
+  stroke: rgb(var(--c-gold));
+}
+.diagram-tile {
+  fill: #b8c8ef;
+  animation: diagram-compute 3s ease-in-out infinite;
+}
+.diagram-label {
+  fill: rgb(var(--c-muted));
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+}
+.diagram-orbit {
+  fill: none;
+  stroke: currentColor;
+  opacity: 0.25;
+  stroke-dasharray: 3 7;
+  transform-origin: 220px 145px;
+  animation: diagram-orbit 70s linear infinite;
+}
+.diagram-orbit-inner {
+  stroke-dasharray: none;
+  opacity: 0.12;
+}
+.diagram-brand {
+  fill: #fff;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 31px;
+  font-style: italic;
+}
+.diagram-node {
+  fill: rgb(var(--c-surface));
+  stroke: rgb(var(--c-border));
+}
+.is-active .diagram-node {
+  stroke: rgb(var(--c-gold));
+}
+.diagram-layer {
+  fill: rgb(var(--c-surface2));
+  stroke: rgb(var(--c-border));
+  transition:
+    fill 0.3s,
+    stroke 0.3s;
+}
+.diagram-layer-edge {
+  fill: rgb(var(--c-surface3));
+  stroke: rgb(var(--c-border));
+}
+.is-active .diagram-layer {
+  fill: rgb(var(--c-accent) / 0.15);
+  stroke: rgb(var(--c-accent) / 0.7);
+}
+.diagram-layer-label {
+  fill: rgb(var(--c-text));
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.13em;
+}
+.diagram-beacon {
+  fill: rgb(var(--c-gold));
+  opacity: 0.3;
+}
+.is-active .diagram-beacon {
+  opacity: 1;
+}
+.diagram-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+.diagram-controls button {
+  min-height: 46px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 3px;
+  font-size: 11px;
+  color: rgb(var(--c-muted));
+  background: rgb(var(--c-surface2));
+  transition:
+    border-color 0.2s,
+    color 0.2s;
+}
+.diagram-controls button > span {
+  display: block;
+  font-size: 8px;
+  margin-bottom: 3px;
+  opacity: 0.65;
+}
+.diagram-controls button[aria-pressed='true'] {
+  border-color: rgb(var(--c-accent) / 0.4);
+  color: rgb(var(--c-text));
+}
+.diagram-controls button:hover {
+  border-color: rgb(var(--c-gold));
+}
+.hero-diagram figcaption > p {
+  min-height: 66px;
+  font-size: 12px;
+  line-height: 1.65;
+  margin: 15px 0 12px;
+  color: rgb(var(--c-muted));
+}
+.hero-diagram figcaption > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: rgb(var(--c-text));
+  border-bottom: 1px solid rgb(var(--c-border));
+  padding-bottom: 4px;
+}
+.hero-diagram figcaption > a:hover {
+  color: rgb(var(--c-accent));
+}
+@keyframes diagram-flow {
+  to {
+    stroke-dashoffset: -114;
+  }
+}
+@keyframes diagram-compute {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes diagram-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 980px) {
+  .page-hero-layout {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 28px;
+  }
+  .page-hero-layout h1 {
+    font-size: 48px;
+  }
+  .hero-diagram {
+    padding: 16px;
+  }
+}
+@media (max-width: 760px) {
+  .page-hero-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+  .hero-diagram {
+    width: 100%;
+    max-width: 480px;
+    justify-self: center;
+  }
+  .page-hero-layout h1 {
+    font-size: clamp(40px, 8vw, 56px);
+  }
+  .page-hero-copy > p {
+    font-size: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-diagram * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

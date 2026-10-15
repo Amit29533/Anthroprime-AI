@@ -1,231 +1,290 @@
-import React, { Suspense, lazy, useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { ArrowUpRight, ArrowRight, Cpu, Layers, Zap, Globe, Server, Rocket, Network } from 'lucide-react'
-import { Tag, Reveal, SectionHead, CTAPrimary, CTAGhost, Stat, Tilt, Typewriter } from '../components/ui'
-import CapacityGraph from '../components/CapacityGraph'
-import HowItWorks from '../components/HowItWorks'
-import GlobalNetwork from '../components/GlobalNetwork'
-import WhoWeServe from '../components/WhoWeServe'
-import WhyUs from '../components/WhyUs'
-import FinalCTA from '../components/FinalCTA'
+import React, { lazy, Suspense, useState } from 'react'
+import { Link } from 'react-router-dom'
+import {
+  ArrowUpRight,
+  ArrowDown,
+  ShieldCheck,
+  Network,
+  Server,
+  Layers,
+  Cpu,
+  Compass,
+  Rocket,
+  Fingerprint,
+  Globe2
+} from 'lucide-react'
+import { Reveal, Typewriter } from '../components/ui'
 import { GPUS, GPU_ORDER } from '../data/gpus'
-import { capacitySummary, PROVIDER_META } from '../data/capacity'
-import { useTheme } from '../theme'
+import FinalCTA from '../components/FinalCTA'
+import LearningTeaser, {
+  InfrastructureStory
+} from '../components/LearningTeaser'
+import GpuFaq from '../components/GpuFaq'
 
-const Globe3D = lazy(() => import('../components/Globe3D'))
+const InfrastructureScene = lazy(
+  () => import('../components/InfrastructureScene')
+)
 
-/* ---------- Hero ---------- */
 function Hero() {
   return (
-    <section id="hero" className="relative pt-[104px] lg:pt-[120px] pb-10 lg:pb-16 overflow-hidden">
-      {/* 3D globe ambient background, right-weighted */}
-      <div className="absolute inset-y-0 right-[-18%] w-[75%] min-w-[520px] opacity-45 hidden lg:block" aria-hidden>
-        <Suspense fallback={null}>
-          <Globe3D className="w-full h-full" />
-        </Suspense>
-      </div>
-
-      <div className="relative max-w-[1280px] mx-auto px-6 lg:px-8">
-        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center">
-        <div className="max-w-[720px] min-w-0">
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface/80 backdrop-blur border border-border text-[11px] font-mono tracking-widest uppercase text-accent">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            Provider-agnostic • Global sourcing • Enterprise scale
-          </motion.div>
-
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="font-display font-bold text-[42px] sm:text-[56px] lg:text-[72px] leading-[0.94] tracking-[-0.03em] mt-6">
-            <Typewriter
-              speed={30}
-              linePause={190}
-              startDelay={150}
-              lines={[
-                { text: 'Global GPU' },
-                { text: 'Infrastructure.', className: 'text-muted' },
-                {
-                  text: 'One Partner.',
-                  className: 'relative inline-block',
-                  tail: (
-                    <motion.span
-                      layoutId="hero-underline"
-                      className="absolute -bottom-2 left-0 right-0 h-[3px] rounded-full bg-gradient-to-r from-accent to-transparent"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  ),
-                },
-              ]}
-            />
-          </motion.h1>
-
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-[17px] lg:text-[18px] leading-[1.6] text-muted max-w-[560px] mt-7">
-            Source and deploy enterprise AI infrastructure across a global network of GPU clouds, data centers and infrastructure providers — through a single commercial interface.
-          </motion.p>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }} className="flex flex-wrap gap-3 mt-8">
-            <CTAPrimary to="/find-capacity">Find GPU Capacity</CTAPrimary>
-            <CTAGhost to="/contact">Talk to an AI Infrastructure Expert</CTAGhost>
-          </motion.div>
-
-          {/* GPU strip — single-line marquee (faithful to the original GPU Capacity Desk marquee band) */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42 }} className="mt-10">
-            <div className="font-mono text-[10.5px] tracking-[0.18em] uppercase text-faint mb-3">Accelerators across our network</div>
-            <div className="relative overflow-hidden fade-x">
-              <div className="gpu-marquee-track">
-                {[0, 1, 2].map((copy) => (
-                  <div key={copy} className="gpu-marquee-copy" aria-hidden={copy > 0}>
-                    {GPU_ORDER.map((slug) => {
-                      const g = GPUS[slug]
-                      return (
-                        <Link key={slug} to={`/gpu/${slug}`} tabIndex={copy === 0 ? 0 : -1} className="group inline-flex shrink-0 items-center gap-2 px-4 py-2 rounded-full bg-surface/80 backdrop-blur border border-border hover:border-accent/40 hover:bg-surface2 transition-all whitespace-nowrap">
-                          <span className="font-mono font-semibold text-[13px]">{g.name}</span>
-                          <span className="font-mono text-[10.5px] text-faint">{g.chips[0]}</span>
-                          <ArrowUpRight className="w-3 h-3 text-faint group-hover:text-accent transition-colors" />
-                        </Link>
-                      )
-                    })}
-                    <Link to="/marketplace?gpu=mi300x" tabIndex={copy === 0 ? 0 : -1} className="group inline-flex shrink-0 items-center gap-2 px-4 py-2 rounded-full bg-surface/80 backdrop-blur border border-border hover:border-accent/40 hover:bg-surface2 transition-all whitespace-nowrap">
-                      <span className="font-mono font-semibold text-[13px]">Enterprise Accelerators</span>
-                      <span className="font-mono text-[10.5px] text-faint">On Request</span>
-                      <ArrowUpRight className="w-3 h-3 text-faint group-hover:text-accent transition-colors" />
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* stats */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="grid grid-cols-3 gap-6 mt-12 max-w-[520px] border-t border-border pt-7">
-            <Stat value="5" label="Regions sourced" />
-            <Stat value="8–8K+" label="GPUs per mandate" />
-            <Stat value={String(Object.keys(PROVIDER_META).length)} label="Providers tracked" />
-          </motion.div>
+    <section className="hero">
+      <div className="hero-grid" aria-hidden="true" />
+      <div className="wrap">
+        <div className="hero-topline mono">
+          <span>
+            <span className="status-dot" />
+            Anthroprime / GPU Capacity Desk
+          </span>
+          <span>India-led. Globally connected. ↗</span>
         </div>
-
-        {/* Capacity Graph diagram (from the original GPU Capacity Desk) */}
-        <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5, duration: 0.7 }} className="relative mt-10 lg:mt-0">
-          <div className="relative rounded-[24px] bg-gradient-to-b from-surface/90 to-surface2/90 backdrop-blur border border-border p-6 lg:p-8 overflow-hidden">
-            <div className="absolute inset-0 dot-pattern opacity-15" aria-hidden />
-            <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-[10.5px] tracking-[0.18em] uppercase text-faint">How the desk works</span>
-                <span className="inline-flex items-center gap-2 font-mono text-[10px] text-accent">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> live
-                </span>
-              </div>
-              <CapacityGraph />
-              <div className="mt-4 flex items-center justify-center gap-2 font-mono text-[10.5px] text-faint">
-                Requirement in → network search → verified capacity out
-              </div>
+        <div className="hero-main">
+          <div className="hero-copy">
+            <div className="eyebrow mono">Built for your next breakthrough</div>
+            <h1>
+              <Typewriter
+                speed={24}
+                startDelay={80}
+                linePause={140}
+                caret={false}
+                lines={[
+                  { text: 'Global GPU' },
+                  { text: 'Infrastructure.' },
+                  { text: 'One Partner.', className: 'gold-line' }
+                ]}
+              />
+            </h1>
+            <p className="hero-description">
+              Extraordinary AI starts with the right foundation. Deploy and
+              scale with Anthroprime’s GPU infrastructure, dedicated clusters,
+              and managed AI environments.
+            </p>
+            <div className="hero-actions">
+              <Link className="btn btn-gold" to="/find-capacity">
+                Find GPU Capacity
+                <ArrowUpRight />
+              </Link>
+              <Link className="btn btn-outline" to="/#capacity">
+                Explore our GPUs
+                <ArrowUpRight />
+              </Link>
+            </div>
+            <div className="hero-footnote mono">
+              <ShieldCheck />
+              Your GPU provider. Workload-led. Human first.
             </div>
           </div>
-        </motion.div>
+          <div
+            className="core-visual"
+            role="img"
+            aria-label="Animated GPU core surrounded by orbital infrastructure connections"
+          >
+            <span className="core-coordinates mono">
+              COMPUTE CORE / 01 — 06
+            </span>
+            <Suspense fallback={<div className="visual-fallback">AI CORE</div>}>
+              <InfrastructureScene />
+            </Suspense>
+            <span className="core-label top mono">Accelerated compute</span>
+            <span className="core-label right mono">Connected capacity</span>
+            <span className="core-label bottom mono">
+              Your next possibility
+            </span>
+            <span className="core-note mono">
+              Illustrative infrastructure visualization
+            </span>
+          </div>
+        </div>
+        <div className="hero-bottom">
+          <div>
+            <p className="intro">
+              The infrastructure behind
+              <br />
+              your next big idea.
+            </p>
+            <a href="#capacity" className="mono caption inline-flex gap-3">
+              Discover what’s possible
+              <ArrowDown size={12} />
+            </a>
+          </div>
+          <div>
+            <span className="number">
+              {GPU_ORDER.length}
+              <em> families</em>
+            </span>
+            <span className="mono caption">Accelerator options</span>
+          </div>
+          <div>
+            <span className="number">
+              AI <em>at scale</em>
+            </span>
+            <span className="mono caption">Training & inference</span>
+          </div>
+          <div>
+            <span className="number">
+              One <em>partner</em>
+            </span>
+            <span className="mono caption">From brief to deployment</span>
+          </div>
         </div>
       </div>
     </section>
   )
 }
 
-/* ---------- Capacity network ticker ---------- */
-const TICKER_LABEL = { h100: 'H100', h200: 'H200', b200: 'B200 / GB200', a100: 'A100', l40s: 'L40S', mi300x: 'Ent. Accelerators' }
-
 function CapacityTicker() {
-  const summary = capacitySummary()
-  const order = ['h100', 'h200', 'b200', 'a100', 'l40s', 'mi300x']
-  const rows = order.map(f => summary.find(s => s.family === f)).filter(Boolean)
-
   return (
-    <Link to="/marketplace" className="block border-y border-border bg-surface/60 hover:bg-surface transition-colors group">
-      <div className="max-w-[1280px] mx-auto px-6 lg:px-8 py-3.5 flex items-center gap-6">
-        <span className="hidden sm:inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.15em] uppercase text-faint shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> Capacity network · {Object.keys(PROVIDER_META).length} providers tracked
-        </span>
-        <div className="flex-1 min-w-0 overflow-hidden fade-x">
-          <div className="ticker-track">
-            {[0, 1].map((copy) => (
-              <div key={copy} className="ticker-copy" aria-hidden={copy > 0}>
-                {rows.map(r => (
-                  <span key={r.family} className="inline-flex items-center gap-2 font-mono text-[12.5px] whitespace-nowrap">
-                    <span className="font-semibold text-text uppercase">{TICKER_LABEL[r.family] || r.family}</span>
-                    <span className="text-faint">·</span>
-                    <span className="text-faint">{r.count} configurations</span>
-                    <span className="text-faint text-[11px]">· {r.providerCount} providers</span>
-                    <span className="text-accent text-[11px]">· on request</span>
-                  </span>
-                ))}
-              </div>
+    <div className="gpu-marquee" aria-label="Accelerator families">
+      <div className="gpu-marquee-track">
+        {[0, 1, 2].map((copy) => (
+          <div className="gpu-marquee-copy" key={copy} aria-hidden={copy > 0}>
+            {GPU_ORDER.map((slug) => (
+              <Link tabIndex={copy ? -1 : 0} to={`/gpu/${slug}`} key={slug}>
+                {GPUS[slug].name}
+                <span>{GPUS[slug].generation}</span>
+              </Link>
             ))}
+            <Link
+              tabIndex={copy ? -1 : 0}
+              to="/find-capacity"
+              state={{ gpu: 'Enterprise Accelerators' }}
+            >
+              Enterprise Accelerators<span>Explore more</span>
+            </Link>
           </div>
-        </div>
-        <span className="ml-auto hidden md:inline-flex items-center gap-1 font-mono text-[11.5px] text-accent shrink-0">Open marketplace <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" /></span>
+        ))}
       </div>
-    </Link>
+    </div>
   )
 }
 
-/* ---------- GPU Capacity Aggregation (compact) ---------- */
 function GpuCloudSection() {
-  const navigate = useNavigate()
-  const theme = useTheme()
-  const featured = ['h100', 'h200', 'b200', 'a100']
-
   return (
-    <section className="py-20 lg:py-28">
-      <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <SectionHead
-            tag="GPU Capacity Aggregation"
-            title="One requirement. A global search across our infrastructure network."
-            sub="Tell us the GPU, quantity, geography and duration. We search across cloud providers, GPU clouds, data centers and infrastructure partners — you evaluate and choose."
-          />
+    <section className="section" id="capacity">
+      <div className="wrap">
+        <div className="section-top">
+          <Reveal>
+            <div className="eyebrow mono">01 / Accelerated possibilities</div>
+            <h2>
+              The right compute.
+              <br />
+              <em>For what comes next.</em>
+            </h2>
+          </Reveal>
           <Reveal delay={0.1}>
-            <Link to="/marketplace" className="inline-flex items-center gap-1.5 font-mono text-[12.5px] text-accent hover:underline shrink-0">
-              View capacity marketplace <ArrowRight className="w-3.5 h-3.5" />
+            <p>
+              From experimentation to enterprise scale. Explore the accelerators
+              and dedicated infrastructure available through Anthroprime.
+            </p>
+            <Link to="/resources#comparison" className="text-link mt-4">
+              Compare GPU specifications
+              <ArrowUpRight />
             </Link>
           </Reveal>
         </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
-          {featured.map((slug, i) => {
+        <div className="gpu-grid">
+          {['h100', 'h200', 'b200', 'a100'].map((slug, i) => {
             const g = GPUS[slug]
             return (
-              <Reveal key={slug} delay={i * 0.07}>
-                <Tilt>
-                  <Link to={`/gpu/${slug}`} className="group block relative overflow-hidden rounded-2xl bg-surface border border-border p-6 hover:border-accent/30 hover:bg-surface2 transition-all h-full">
-                    <div aria-hidden className="pointer-events-none absolute -top-16 -right-16 w-40 h-40 rounded-full blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `${theme === 'dark' ? g.accent : (g.accentLight || g.accent)}22` }} />
-                    <div className="relative">
-                      <div className="flex items-center justify-between">
-                        <span className={`font-mono text-[10px] tracking-wide uppercase px-2.5 py-1 rounded-full border ${g.generation === 'Blackwell' ? 'bg-gold/10 text-gold border-gold/20' : g.generation === 'Hopper' ? 'bg-accentDim text-accent border-accent/20' : 'bg-surface3 text-faint border-border'}`}>
-                          {g.generation}
-                        </span>
-                        <Cpu className="w-4 h-4 text-faint group-hover:text-accent transition-colors" />
-                      </div>
-                      <div className="font-display font-bold text-[30px] tracking-tight mt-4">{g.name}</div>
-                      <div className="font-mono text-[11px] text-faint mt-0.5">{g.tagline}</div>
-                      <div className="flex flex-wrap gap-1.5 mt-4">
-                        {g.chips.slice(0, 3).map(c => (
-                          <span key={c} className="font-mono text-[10.5px] px-2 py-0.5 rounded-full bg-surface3 border border-border text-muted">{c}</span>
-                        ))}
-                      </div>
-                      <div className="mt-5 pt-4 border-t border-border/60 flex items-center justify-between font-mono text-[11px] text-faint group-hover:text-accent transition-colors">
-                        Full specs & availability <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                      </div>
+              <Reveal key={slug} delay={i * 0.08}>
+                <Link className="gpu-card" to={`/gpu/${slug}`}>
+                  <div className="gpu-card-art" aria-hidden="true">
+                    <span className="gpu-art-label mono">
+                      NVIDIA / {g.generation}
+                    </span>
+                    <div className="gpu-die">
+                      <span>{g.name}</span>
                     </div>
-                  </Link>
-                </Tilt>
+                  </div>
+                  <div className="gpu-card-body">
+                    <div className="gpu-card-head">
+                      <h3>{g.name}</h3>
+                      <ArrowUpRight />
+                    </div>
+                    <p>{g.tagline}</p>
+                    <div className="gpu-specs mono">
+                      {g.chips.slice(0, 3).map((c) => (
+                        <span key={c}>{c}</span>
+                      ))}
+                    </div>
+                  </div>
+                </Link>
               </Reveal>
             )
           })}
         </div>
+        <div className="catalog-bottom">
+          <span className="mono">
+            Dedicated GPUs · Clusters · Managed infrastructure
+          </span>
+          <Link to="/services#svc-advisory" className="text-link">
+            Not sure where to start? Talk to an expert
+            <ArrowUpRight />
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
 
-        <Reveal delay={0.15} className="mt-8">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="font-mono text-[11px] tracking-wide uppercase text-faint mr-2">Deployment models</span>
-            {['On-demand', 'Reserved', 'Dedicated servers', 'Dedicated clusters', 'Bare-metal', 'Private AI cloud', 'Long-term reservation'].map(d => (
-              <span key={d} className="px-3.5 py-1.5 rounded-full bg-surface border border-border font-mono text-[11.5px] text-muted hover:border-accent/25 hover:text-text transition-colors cursor-default">{d}</span>
+function ClustersSection() {
+  return (
+    <section className="section cluster-section">
+      <div className="wrap cluster-grid">
+        <Reveal className="cluster-copy">
+          <div className="eyebrow mono">02 / Built to go bigger</div>
+          <h2 className="editorial-title">
+            From a single node.
+            <br />
+            <em>To your next frontier.</em>
+          </h2>
+          <p>
+            Training a foundation model or taking inference to production? We
+            bring compute, networking, storage, and deployment together around
+            your workload.
+          </p>
+          <div className="cluster-features">
+            {[
+              [Server, 'Dedicated GPU clusters'],
+              [Network, 'High-speed interconnects'],
+              [Layers, 'Kubernetes / Slurm'],
+              [ShieldCheck, 'Private AI infrastructure']
+            ].map(([Icon, t]) => (
+              <div key={t}>
+                <Icon />
+                {t}
+              </div>
             ))}
+          </div>
+          <Link to="/solutions/clusters" className="btn btn-primary">
+            Explore dedicated clusters
+            <ArrowUpRight />
+          </Link>
+        </Reveal>
+        <Reveal delay={0.15}>
+          <div
+            className="rack-visual"
+            role="img"
+            aria-label="Animated illustration of three connected GPU server racks"
+          >
+            <div className="rack-topline mono">
+              <span>Cluster architecture / Illustration</span>
+              <span>GPU • Fabric • Storage</span>
+            </div>
+            <div className="rack-grid">
+              {[0, 1, 2].map((r) => (
+                <div className="rack" key={r}>
+                  {Array.from({ length: 7 }, (_, i) => (
+                    <div className="rack-unit" key={i}>
+                      <i style={{ animationDelay: `${r + i * 0.3}s` }} />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+            <div className="rack-caption mono">
+              One connected architecture. Designed around your workload.
+            </div>
+            <div className="rack-scan" />
           </div>
         </Reveal>
       </div>
@@ -233,92 +292,304 @@ function GpuCloudSection() {
   )
 }
 
-/* ---------- Dedicated clusters teaser ---------- */
-function ClustersSection() {
-  const items = [
-    { icon: Server, title: '8-GPU HGX nodes', sub: 'A100 · H100 · H200 · B200 platforms' },
-    { icon: Zap, title: 'NVLink / NVSwitch', sub: 'Up to 1.8 TB/s per GPU (NVLink 5)' },
-    { icon: Network, title: 'InfiniBand fabrics', sub: 'HDR / NDR / XDR · 200–800 Gb/s' },
-    { icon: Layers, title: 'HP storage tiers', sub: 'Datasets + checkpoint throughput' },
-    { icon: Cpu, title: 'Orchestration', sub: 'Kubernetes & Slurm, tuned' },
-    { icon: Rocket, title: 'Containerized AI', sub: 'Reproducible, portable stacks' },
-  ]
-
+function HowItWorks() {
   return (
-    <section className="py-20 lg:py-28 bg-surface/50 border-y border-border/50 relative overflow-hidden">
-      <div className="absolute inset-0 dot-pattern opacity-[0.07]" aria-hidden />
-      <div className="relative max-w-[1280px] mx-auto px-6 lg:px-8">
-        <div className="grid lg:grid-cols-[1fr_1.2fr] gap-12 items-center">
+    <section className="section">
+      <div className="wrap">
+        <div className="section-top">
           <Reveal>
-            <Tag>Dedicated AI Clusters</Tag>
-            <h2 className="font-display font-bold text-[30px] lg:text-[42px] leading-[1.08] tracking-[-0.02em]">
-              Complete GPU clusters, designed and sourced for large AI workloads.
+            <div className="eyebrow mono">03 / A clearer path forward</div>
+            <h2>
+              Complex infrastructure.
+              <br />
+              <em>Considered. Connected. Delivered.</em>
             </h2>
-            <p className="text-[16px] leading-[1.6] text-muted mt-4">
-              From a single 8-GPU node to multi-node HGX clusters — we design the architecture and source the infrastructure behind it. Every configuration is verified at time of mandate.
-            </p>
-            <div className="flex flex-wrap gap-2 mt-6">
-              {['Model Training', 'Fine-Tuning', 'Inference', 'GenAI', 'LLM', 'Computer Vision', 'Research', 'HPC'].map(uc => (
-                <span key={uc} className="px-3 py-1.5 rounded-lg bg-bg border border-border font-display font-medium text-[12.5px] text-muted hover:text-accent hover:border-accent/25 transition-colors cursor-default">{uc}</span>
-              ))}
-            </div>
-            <div className="mt-8">
-              <CTAGhost to="/solutions/clusters">Explore dedicated clusters →</CTAGhost>
-            </div>
           </Reveal>
-
-          <div className="grid sm:grid-cols-2 gap-3">
-            {items.map((it, i) => (
-              <Reveal key={it.title} delay={i * 0.05}>
-                <div className="group rounded-xl bg-bg border border-border p-5 hover:border-accent/25 hover:bg-surface2 transition-all h-full">
-                  <div className="flex items-start gap-3.5">
-                    <div className="w-9 h-9 rounded-lg bg-surface3 border border-border flex items-center justify-center text-faint group-hover:text-accent group-hover:border-accent/20 transition-colors shrink-0">
-                      <it.icon className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-[14px] leading-tight">{it.title}</div>
-                      <div className="font-mono text-[11.5px] text-faint mt-1">{it.sub}</div>
-                    </div>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
+          <p>
+            One team stays with you from the first question to the first
+            workload. Work directly with Anthroprime for your GPU
+            infrastructure.
+          </p>
+        </div>
+        <div className="process-grid">
+          {[
+            [
+              '01',
+              'Start with your world',
+              'Your workload, scale, geography, and timeline become a clear, comparable requirement.'
+            ],
+            [
+              '02',
+              'Find the right fit',
+              'We assess your workload and confirm the right GPU configuration, deployment model, and available capacity.'
+            ],
+            [
+              '03',
+              'Make the connection',
+              'Agree your configuration, timeline, and commercial terms directly with Anthroprime.'
+            ],
+            [
+              '04',
+              'Build what’s next',
+              'We coordinate deployment, validate the environment, and support your next scaling event.'
+            ]
+          ].map(([n, t, d], i) => (
+            <Reveal className="process-step" delay={i * 0.1} key={n}>
+              <span>{n}</span>
+              <h3>{t}</h3>
+              <p>{d}</p>
+            </Reveal>
+          ))}
         </div>
       </div>
     </section>
   )
 }
 
-/* ---------- Services teaser ---------- */
-function ServicesTeaser() {
-  const cards = [
-    { icon: Globe, title: 'GPU Capacity Sourcing', desc: 'Requirement in → verified shortlist out, with comparable commercials.', to: '/services#svc-sourcing' },
-    { icon: Layers, title: 'AI Infrastructure Advisory', desc: 'Architecture, efficiency and provider selection before capital is committed.', to: '/services#svc-advisory' },
-    { icon: Server, title: 'Managed AI Infrastructure', desc: 'Monitoring, hardening, optimization and support after go-live.', to: '/services#svc-managed' },
-  ]
+const regions = [
+  {
+    name: 'North America',
+    x: 173,
+    y: 142,
+    note: 'Discuss deployment requirements for research, model development, and enterprise workloads in North America.'
+  },
+  {
+    name: 'Europe',
+    x: 400,
+    y: 112,
+    note: 'Plan European deployments around your residency, connectivity, and workload requirements.'
+  },
+  {
+    name: 'Middle East',
+    x: 471,
+    y: 181,
+    note: 'Find regional infrastructure options for latency-sensitive and enterprise AI programs.'
+  },
+  {
+    name: 'India',
+    x: 534,
+    y: 204,
+    note: 'Work directly with our India-based team on GPU capacity, architecture, and deployment.'
+  },
+  {
+    name: 'Southeast Asia',
+    x: 591,
+    y: 236,
+    note: 'Explore regional capacity for APAC workloads and distributed inference.'
+  }
+]
+
+function NetworkMap({ active }) {
   return (
-    <section className="py-20 lg:py-28">
-      <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
-        <SectionHead
-          tag="AI Infrastructure Services"
-          title="From GPU sourcing to production-ready AI infrastructure."
-          sub="We don't just provide GPUs — we help determine the right architecture, then keep it running. That's what separates an aggregator from a reseller."
-        />
-        <div className="grid md:grid-cols-3 gap-4 mt-12">
-          {cards.map((c, i) => (
-            <Reveal key={c.title} delay={i * 0.07}>
-              <Link to={c.to} className="group block rounded-2xl bg-surface border border-border p-7 hover:border-accent/25 hover:bg-surface2 hover:-translate-y-1 transition-all h-full">
-                <c.icon className="w-6 h-6 text-accent mb-5" />
-                <div className="font-display font-semibold text-[17px] group-hover:text-accent transition-colors">{c.title}</div>
-                <p className="text-[13.5px] leading-[1.5] text-muted mt-2">{c.desc}</p>
-                <div className="mt-5 font-mono text-[11.5px] text-faint group-hover:text-accent transition-colors inline-flex items-center gap-1">
-                  Learn more <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                </div>
-              </Link>
-            </Reveal>
+    <svg
+      viewBox="0 0 800 380"
+      className="world-map"
+      role="img"
+      aria-label={`Deployment planning regions. Selected region: ${regions[active].name}`}
+    >
+      <defs>
+        <pattern
+          id="map-dots"
+          width="7"
+          height="7"
+          patternUnits="userSpaceOnUse"
+        >
+          <circle cx="2" cy="2" r="1" fill="#8193b9" />
+        </pattern>
+      </defs>
+      {[80, 140, 200, 260, 320].map((y) => (
+        <path className="map-lat" d={`M20 ${y}H780`} key={y} />
+      ))}
+      {[100, 200, 300, 400, 500, 600, 700].map((x) => (
+        <path className="map-lat" d={`M${x} 40V345`} key={x} />
+      ))}
+      <g fill="url(#map-dots)" opacity=".65">
+        <path d="M55 91 87 71 118 78 146 57 184 61 208 45 245 66 257 94 236 117 208 127 196 157 169 171 164 194 185 210 172 228 152 202 137 190 125 168 100 151 93 128 67 121Z" />
+        <path d="M191 229 220 216 246 237 267 252 257 281 239 298 225 331 207 351 201 317 191 294 179 261Z" />
+        <path d="M277 42 318 39 327 59 307 94 280 79Z" />
+        <path d="M356 115 369 94 397 93 406 69 435 68 447 102 429 121 435 146 411 158 395 142 378 145 365 133Z" />
+        <path d="M365 160 395 147 428 161 453 196 442 228 422 243 410 283 394 278 378 247 358 223 345 191Z" />
+        <path d="M445 82 479 55 520 62 554 49 594 68 630 57 673 79 713 76 748 98 727 127 693 127 683 152 651 164 638 185 614 193 611 222 585 230 576 257 554 237 544 204 525 222 508 211 498 184 476 177 457 147 437 136Z" />
+        <path d="M588 246 603 258 625 264 640 281 618 276 603 272Z M646 282 679 265 705 279 716 307 693 327 654 320 635 301Z M738 321 750 309 754 331 740 348Z" />
+      </g>
+      {regions
+        .filter((_, i) => i !== 3)
+        .map((r) => (
+          <path
+            key={r.name}
+            className="map-arc"
+            d={`M534 204 Q${(r.x + 534) / 2} ${Math.min(r.y, 204) - 110} ${r.x} ${r.y}`}
+          />
+        ))}
+      {regions.map((r, i) => (
+        <g key={r.name} opacity={active === i ? 1 : 0.6}>
+          <circle
+            className="map-pulse"
+            cx={r.x}
+            cy={r.y}
+            r={7}
+            style={{ animationDelay: `${i * 0.4}s` }}
+          />
+          <circle
+            className="map-node"
+            cx={r.x}
+            cy={r.y}
+            r={active === i ? 5 : 3}
+          />
+          <text className="map-label" x={r.x + 12} y={r.y - 10}>
+            {r.name.toUpperCase()}
+          </text>
+        </g>
+      ))}
+    </svg>
+  )
+}
+
+function GlobalNetwork() {
+  const [active, setActive] = useState(3)
+  return (
+    <section className="section network-section">
+      <div className="wrap">
+        <div className="section-top">
+          <Reveal>
+            <div className="eyebrow mono">04 / A world of possibilities</div>
+            <h2>
+              Global perspective.
+              <br />
+              <em>Local understanding.</em>
+            </h2>
+          </Reveal>
+          <p>
+            Plan your deployment around geography, latency, and data residency.
+            Our team confirms regional capacity for your requirement.
+          </p>
+        </div>
+        <div className="network-layout">
+          <Reveal>
+            <NetworkMap active={active} />
+          </Reveal>
+          <Reveal delay={0.15}>
+            <div
+              className="region-buttons"
+              aria-label="Explore deployment regions"
+            >
+              {regions.map((r, i) => (
+                <button
+                  className={i === active ? 'active' : ''}
+                  aria-pressed={i === active}
+                  onClick={() => setActive(i)}
+                  key={r.name}
+                >
+                  {r.name}
+                  <ArrowUpRight />
+                </button>
+              ))}
+            </div>
+            <p className="region-info" aria-live="polite">
+              {regions[active].note}
+            </p>
+          </Reveal>
+        </div>
+        <div className="network-caption mono">
+          <span>
+            <span className="status-dot" />
+            Illustrative deployment regions · Not a live availability map
+          </span>
+          <span>Regional availability confirmed on request.</span>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function WhoWeServe() {
+  return (
+    <section className="section">
+      <div className="wrap">
+        <div className="section-top">
+          <Reveal>
+            <div className="eyebrow mono">05 / Ambition takes many forms</div>
+            <h2>
+              Built around the work.
+              <br />
+              <em>And the people behind it.</em>
+            </h2>
+          </Reveal>
+          <Link to="/solutions" className="text-link">
+            Discover all solutions
+            <ArrowUpRight />
+          </Link>
+        </div>
+        <div className="solutions-grid">
+          {[
+            {
+              n: '01 / Train',
+              icon: Cpu,
+              title: 'Build the next model.',
+              desc: 'Dedicated training infrastructure for AI teams taking ambitious ideas into the world.',
+              to: '/solutions/training'
+            },
+            {
+              n: '02 / Serve',
+              icon: Rocket,
+              title: 'Make intelligence useful.',
+              desc: 'Inference foundations designed around your latency, throughput, and deployment needs.',
+              to: '/solutions/inference'
+            },
+            {
+              n: '03 / Own your environment',
+              icon: Fingerprint,
+              title: 'Your AI. Your boundaries.',
+              desc: 'Private and sovereign infrastructure for enterprises with specific control requirements.',
+              to: '/solutions/private-cloud'
+            }
+          ].map((s) => (
+            <Link to={s.to} className="solution-tile" key={s.to}>
+              <span className="mono">{s.n}</span>
+              <ArrowUpRight className="solution-arrow" />
+              <s.icon />
+              <h3>{s.title}</h3>
+              <p>{s.desc}</p>
+            </Link>
           ))}
         </div>
+      </div>
+    </section>
+  )
+}
+
+function WhyUs() {
+  return (
+    <section className="why-section">
+      <div className="wrap why-grid">
+        <h2>
+          Technical depth.
+          <br />
+          <em className="text-gold">Human perspective.</em>
+        </h2>
+        {[
+          [
+            Compass,
+            'Your GPU infrastructure provider',
+            'Work directly with Anthroprime for GPU capacity and infrastructure built around your workload.'
+          ],
+          [
+            ShieldCheck,
+            'Confidence before commitment',
+            'Configuration, availability, and terms confirmed before commitment. Confidential discussions under NDA.'
+          ],
+          [
+            Globe2,
+            'A partner, beyond procurement',
+            'From architecture to deployment and operations. A team that stays connected.'
+          ]
+        ].map(([Icon, t, d]) => (
+          <div className="why-item" key={t}>
+            <Icon />
+            <h3>{t}</h3>
+            <p>{d}</p>
+          </div>
+        ))}
       </div>
     </section>
   )
@@ -330,12 +601,14 @@ export default function Home() {
       <Hero />
       <CapacityTicker />
       <GpuCloudSection />
+      <LearningTeaser />
       <ClustersSection />
       <HowItWorks />
       <GlobalNetwork />
-      <ServicesTeaser />
       <WhoWeServe />
       <WhyUs />
+      <InfrastructureStory />
+      <GpuFaq />
       <FinalCTA />
     </>
   )

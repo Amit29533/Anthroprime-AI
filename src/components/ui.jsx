@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowUpRight, ChevronRight } from 'lucide-react'
+import { useMotionSettings } from './MotionSettings'
+import HeroDiagram from './HeroDiagram'
 
 /**
  * Typewriter — types its lines out one character at a time, line by line.
@@ -23,17 +25,22 @@ export function Typewriter({
   caretClassName = '',
   lineClassName = '',
   className = '',
-  onDone,
+  onDone
 }) {
-  const items = lines.map(l => (typeof l === 'string' ? { text: l } : l))
+  const items = lines.map((l) => (typeof l === 'string' ? { text: l } : l))
   const ends = []
   let acc = 0
-  items.forEach(l => { acc += l.text.length; ends.push(acc) })
+  items.forEach((l) => {
+    acc += l.text.length
+    ends.push(acc)
+  })
   const total = acc
 
   const [typed, setTyped] = useState(0)
   const [reduced, setReduced] = useState(false)
+  const { paused } = useMotionSettings()
   const doneRef = useRef(null)
+  const completedRef = useRef(false)
   doneRef.current = onDone
 
   useEffect(() => {
@@ -50,7 +57,9 @@ export function Typewriter({
   }, [])
 
   useEffect(() => {
-    if (reduced || total === 0) {
+    if (completedRef.current) return
+    if (reduced || paused || total === 0) {
+      completedRef.current = true
       setTyped(total)
       doneRef.current?.()
       return
@@ -62,29 +71,46 @@ export function Typewriter({
     const step = () => {
       n += 1
       setTyped(n)
-      if (n < total) id = setTimeout(step, boundaries.has(n) ? linePause : speed)
-      else doneRef.current?.()
+      if (n < total)
+        id = setTimeout(step, boundaries.has(n) ? linePause : speed)
+      else {
+        completedRef.current = true
+        doneRef.current?.()
+      }
     }
     id = setTimeout(step, startDelay)
     return () => clearTimeout(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reduced, total, speed, linePause, startDelay])
+  }, [reduced, paused, total, speed, linePause, startDelay])
 
   const done = typed >= total
-  const caretLine = done ? items.length - 1 : Math.max(0, ends.findIndex(e => typed < e))
+  const caretLine = done
+    ? items.length - 1
+    : Math.max(
+        0,
+        ends.findIndex((e) => typed < e)
+      )
 
   return (
     <>
-      <span className="sr-only">{items.map(l => l.text).join(' ')}</span>
+      <span className="sr-only">{items.map((l) => l.text).join(' ')}</span>
       <span aria-hidden="true" className={className}>
         {items.map((item, i) => {
           const start = i === 0 ? 0 : ends[i - 1]
-          const shown = item.text.slice(0, Math.max(0, Math.min(item.text.length, typed - start)))
+          const shown = item.text.slice(
+            0,
+            Math.max(0, Math.min(item.text.length, typed - start))
+          )
           const lineDone = typed >= ends[i]
           return (
-            <span key={i} className={`block ${item.className || lineClassName}`}>
+            <span
+              key={i}
+              className={`block ${item.className || lineClassName}`}
+            >
               {shown}
-              {caret && i === caretLine && <span className={`type-caret ${caretClassName}`} />}
+              {caret && i === caretLine && (
+                <span className={`type-caret ${caretClassName}`} />
+              )}
               {lineDone && item.tail}
             </span>
           )
@@ -105,9 +131,10 @@ export function Tag({ children }) {
 
 /** Scroll-reveal wrapper */
 export function Reveal({ children, delay = 0, className = '' }) {
+  const { paused } = useMotionSettings()
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18 }}
+      initial={paused ? false : { opacity: 0, y: 22 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ delay, duration: 0.55, ease: [0.21, 0.6, 0.35, 1] }}
@@ -120,42 +147,95 @@ export function Reveal({ children, delay = 0, className = '' }) {
 
 /** Primary / secondary CTA buttons (router-aware) */
 export function CTAPrimary({ to, href, state, children, className = '' }) {
-  const cls = `inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-accent text-bg font-semibold text-[14.5px] hover:bg-accent2 transition-all glow ${className}`
-  return to ? <Link to={to} state={state} className={cls}>{children} <ArrowUpRight className="w-4 h-4" /></Link>
-    : <a href={href} className={cls}>{children} <ArrowUpRight className="w-4 h-4" /></a>
+  const cls = `btn btn-primary ${className}`
+  return to ? (
+    <Link to={to} state={state} className={cls}>
+      {children} <ArrowUpRight className="w-4 h-4" />
+    </Link>
+  ) : (
+    <a href={href} className={cls}>
+      {children} <ArrowUpRight className="w-4 h-4" />
+    </a>
+  )
 }
 
 export function CTAGhost({ to, href, state, children, className = '' }) {
-  const cls = `inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-surface border border-border text-text font-medium text-[14.5px] hover:border-border2 hover:bg-surface2 transition-all ${className}`
-  return to ? <Link to={to} state={state} className={cls}>{children}</Link> : <a href={href} className={cls}>{children}</a>
+  const cls = `btn btn-secondary ${className}`
+  return to ? (
+    <Link to={to} state={state} className={cls}>
+      {children}
+    </Link>
+  ) : (
+    <a href={href} className={cls}>
+      {children}
+    </a>
+  )
 }
 
 /** Sub-page hero with breadcrumb */
-export function PageHero({ crumb, title, highlight, sub, children }) {
+export function PageHero({
+  crumb,
+  title,
+  highlight,
+  sub,
+  children,
+  diagram,
+  diagramLabel
+}) {
+  const { paused } = useMotionSettings()
+  const variant =
+    diagram ||
+    { Company: 'practice', 'GPU Cloud': 'gpu' }[crumb.split(' / ')[0]] ||
+    crumb.split(' / ')[0]
   return (
-    <section className="relative pt-[128px] pb-14 lg:pb-16 overflow-hidden">
-      <div className="absolute inset-0 dot-pattern opacity-[0.12]" aria-hidden />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[420px] bg-accent/5 rounded-full blur-[110px]" aria-hidden />
+    <section className="page-hero">
       <div className="relative max-w-[1280px] mx-auto px-6 lg:px-8">
-        <motion.nav initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-1.5 font-mono text-[11px] tracking-wide uppercase text-faint" aria-label="Breadcrumb">
-          <Link to="/" className="hover:text-accent transition-colors">Home</Link>
-          <ChevronRight className="w-3 h-3" />
-          <span className="text-muted">{crumb}</span>
-        </motion.nav>
-        <motion.h1
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08 }}
-          className="font-display font-bold text-[36px] sm:text-[48px] lg:text-[58px] leading-[0.98] tracking-[-0.025em] mt-5 max-w-[880px]"
-        >
-          {title} {highlight && <span className="text-muted">{highlight}</span>}
-        </motion.h1>
-        {sub && (
-          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }} className="text-[16.5px] lg:text-[17.5px] leading-[1.6] text-muted mt-5 max-w-[680px]">
-            {sub}
-          </motion.p>
-        )}
-        {children && <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }} className="mt-7">{children}</motion.div>}
+        <div className="page-hero-layout">
+          <div className="page-hero-copy">
+            <motion.nav
+              initial={paused ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="breadcrumb mono"
+              aria-label="Breadcrumb"
+            >
+              <Link to="/" className="hover:text-accent transition-colors">
+                Home
+              </Link>
+              <ChevronRight className="w-3 h-3" />
+              <span className="text-muted">{crumb}</span>
+            </motion.nav>
+            <motion.h1
+              initial={paused ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+            >
+              {title} {highlight && <span>{highlight}</span>}
+            </motion.h1>
+            {sub && (
+              <motion.p
+                initial={paused ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.16 }}
+              >
+                {sub}
+              </motion.p>
+            )}
+            {children && (
+              <motion.div
+                initial={paused ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.22 }}
+                className="hero-children"
+              >
+                {children}
+              </motion.div>
+            )}
+          </div>
+          <HeroDiagram
+            variant={variant}
+            label={diagramLabel || (variant === 'gpu' ? title : undefined)}
+          />
+        </div>
       </div>
     </section>
   )
@@ -165,10 +245,11 @@ export function PageHero({ crumb, title, highlight, sub, children }) {
 export function Tilt({ children, className = '', max = 7 }) {
   const ref = useRef(null)
   const [t, setT] = useState({ rx: 0, ry: 0 })
+  const { paused } = useMotionSettings()
 
   const onMove = (e) => {
     const el = ref.current
-    if (!el) return
+    if (!el || paused) return
     const r = el.getBoundingClientRect()
     const px = (e.clientX - r.left) / r.width - 0.5
     const py = (e.clientY - r.top) / r.height - 0.5
@@ -181,7 +262,13 @@ export function Tilt({ children, className = '', max = 7 }) {
         ref={ref}
         onMouseMove={onMove}
         onMouseLeave={() => setT({ rx: 0, ry: 0 })}
-        style={{ transform: `rotateX(${t.rx}deg) rotateY(${t.ry}deg)`, transformStyle: 'preserve-3d', transition: 'transform 0.18s ease-out' }}
+        style={{
+          transform: paused
+            ? 'none'
+            : `rotateX(${t.rx}deg) rotateY(${t.ry}deg)`,
+          transformStyle: 'preserve-3d',
+          transition: 'transform 0.18s ease-out'
+        }}
       >
         {children}
       </div>
@@ -193,8 +280,14 @@ export function Tilt({ children, className = '', max = 7 }) {
 export function Stat({ value, label, accent = false }) {
   return (
     <div>
-      <div className={`font-display font-bold text-[26px] leading-none ${accent ? 'text-accent' : ''}`}>{value}</div>
-      <div className="font-mono text-[10.5px] tracking-wide uppercase text-faint mt-1.5">{label}</div>
+      <div
+        className={`font-display font-bold text-[26px] leading-none ${accent ? 'text-accent' : ''}`}
+      >
+        {value}
+      </div>
+      <div className="font-mono text-[10.5px] tracking-wide uppercase text-faint mt-1.5">
+        {label}
+      </div>
     </div>
   )
 }
@@ -204,8 +297,12 @@ export function SectionHead({ tag, title, sub, center = false }) {
   return (
     <Reveal className={`max-w-[760px] ${center ? 'mx-auto text-center' : ''}`}>
       {tag && <Tag>{tag}</Tag>}
-      <h2 className="font-display font-bold text-[30px] lg:text-[42px] leading-[1.08] tracking-[-0.02em]">{title}</h2>
-      {sub && <p className="text-[16px] leading-[1.6] text-muted mt-4">{sub}</p>}
+      <h2 className="font-display font-bold text-[30px] lg:text-[42px] leading-[1.08] tracking-[-0.02em]">
+        {title}
+      </h2>
+      {sub && (
+        <p className="text-[16px] leading-[1.6] text-muted mt-4">{sub}</p>
+      )}
     </Reveal>
   )
 }

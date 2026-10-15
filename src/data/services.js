@@ -1,18 +1,18 @@
 export const SERVICES = [
   {
     id: 'svc-sourcing',
-    name: 'GPU Capacity Sourcing',
+    name: 'GPU Capacity & Provisioning',
     icon: 'Search',
-    short: 'Requirement in → verified shortlist out.',
-    desc: 'The core of the aggregator model. You give us the requirement — GPU type, quantity, geography, workload, duration. We search across cloud providers, GPU clouds, data centers and infrastructure partners, verify availability, and bring back a comparable shortlist with commercial options.',
+    short: 'Your workload → your GPU environment.',
+    desc: 'GPU capacity directly from Anthroprime. Share your GPU type, quantity, geography, workload, and duration. We confirm availability, configure the environment, and agree the deployment plan and commercial terms with you.',
     items: [
-      'Requirement translation into comparable specs',
-      'Network-wide capacity search and verification',
-      'Side-by-side architecture & commercial comparison',
-      'Commitment-model comparison across providers',
-      'Contracting support — you contract with the provider',
-      'Ongoing capacity desk for scaling events',
-    ],
+      'Workload assessment and GPU specification',
+      'Capacity planning and availability confirmation',
+      'Compute, network, and storage configuration',
+      'Dedicated and reserved deployment options',
+      'Commercial terms agreed directly with Anthroprime',
+      'Ongoing capacity desk for scaling events'
+    ]
   },
   {
     id: 'svc-advisory',
@@ -30,8 +30,8 @@ export const SERVICES = [
       'Network and storage architecture',
       'Migration planning',
       'AI infrastructure security',
-      'FinOps / GPU utilization governance',
-    ],
+      'FinOps / GPU utilization governance'
+    ]
   },
   {
     id: 'svc-deployment',
@@ -45,8 +45,8 @@ export const SERVICES = [
       'GPU driver and CUDA stack',
       'Containerized AI environments',
       'Storage integration and validation',
-      'Acceptance testing with your workloads',
-    ],
+      'Acceptance testing with your workloads'
+    ]
   },
   {
     id: 'svc-managed',
@@ -60,8 +60,8 @@ export const SERVICES = [
       'Performance optimization',
       'Security hardening',
       'Backup and resilience',
-      'Technical support & SLA',
-    ],
+      'Technical support & SLA'
+    ]
   },
   {
     id: 'svc-security',
@@ -74,8 +74,8 @@ export const SERVICES = [
       'Hardening baselines (host, fabric, platform)',
       'Network isolation & segmentation design',
       'Secrets, KMS and access governance guidance',
-      'NDA-controlled partner disclosure',
-      'Compliance documentation support',
-    ],
-  },
+      'Confidential requirements and NDA support',
+      'Compliance documentation support'
+    ]
+  }
 ]

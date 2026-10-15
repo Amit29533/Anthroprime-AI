@@ -5,7 +5,9 @@ const STORAGE_KEY = 'ap-theme'
 /** Read the current theme from the <html> class (set by the inline script / applyTheme). */
 export function getTheme() {
   if (typeof document !== 'undefined') {
-    return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+    return document.documentElement.classList.contains('dark')
+      ? 'dark'
+      : 'light'
   }
   return 'light'
 }
@@ -14,10 +16,17 @@ export function getTheme() {
 export function applyTheme(theme) {
   const next = theme === 'dark' ? 'dark' : 'light'
   document.documentElement.classList.toggle('dark', next === 'dark')
-  try { localStorage.setItem(STORAGE_KEY, next) } catch (e) { /* private mode */ }
+  try {
+    localStorage.setItem(STORAGE_KEY, next)
+  } catch (e) {
+    /* private mode */
+  }
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', next === 'dark' ? '#070A0F' : '#F9FAFB')
-  window.dispatchEvent(new CustomEvent('ap-theme-change', { detail: { theme: next } }))
+  if (meta)
+    meta.setAttribute('content', next === 'dark' ? '#0f182b' : '#f5f4f1')
+  window.dispatchEvent(
+    new CustomEvent('ap-theme-change', { detail: { theme: next } })
+  )
 }
 
 /** React hook: returns 'light' | 'dark' and re-renders on theme changes. */

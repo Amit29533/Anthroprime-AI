@@ -1,32 +1,15 @@
 import React from 'react'
-
-/**
- * The Anthroprime brand lockup — used in the header and footer.
- *
- * Renders the company mark (the white "A·P" handshake monogram on its navy
- * tile) followed by the "Anthroprime" wordmark. The mark ships on its navy
- * background so it reads cleanly on both the light and dark themes.
- *
- * Size the mark by height via `boxClassName`, e.g.
- *   <LogoMark boxClassName="h-8 w-auto" />
- * and tune the wordmark size with `textClassName`. The matching favicon
- * lives in /public/favicon.png.
- */
-export default function LogoMark({ boxClassName = 'h-8 w-auto', textClassName = 'text-[18px]' }) {
+export default function LogoMark() {
   return (
-    <span className="flex items-center gap-2.5 shrink-0 select-none">
-      <img
-        src="/logo.png"
-        alt=""
-        width={448}
-        height={279}
-        loading="eager"
-        decoding="async"
-        className={`${boxClassName} object-contain shrink-0`}
-        draggable={false}
-      />
-      <span className={`font-display font-bold tracking-tight text-text leading-none whitespace-nowrap ${textClassName}`}>
-        Anthroprime
+    <span className="brand">
+      <span className="brand-icon">
+        <img src="/logo.png" alt="" width="38" height="31" />
+      </span>
+      <span>
+        <span className="brand-name">
+          Anthro<em>Prime</em>
+        </span>
+        <span className="brand-caption">AI infrastructure · Human first</span>
       </span>
     </span>
   )

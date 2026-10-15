@@ -1,188 +1,494 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { PageHero } from '../components/ui'
-
-const GPU_OPTIONS = ['H100', 'H200', 'B200 / GB200', 'A100', 'L40S', 'Enterprise Accelerators', 'Not sure / need advice']
-const DEPLOY_OPTIONS = ['Bare Metal', 'Managed', 'Dedicated / Reserved', 'Not sure']
-
-/** Normalize incoming prefill values (from GPU detail pages, marketplace & comparison tool)
- *  into one of the selectable options — e.g. 'B200' / 'GB200' → 'B200 / GB200'. */
-const GPU_ALIASES = {
-  'B200': 'B200 / GB200',
-  'GB200': 'B200 / GB200',
-  'B200 / GB200': 'B200 / GB200',
-  'MI300X': 'Enterprise Accelerators',
-  'MI300': 'Enterprise Accelerators',
-  'mi300x': 'Enterprise Accelerators',
-}
-const normalizeGpu = (g) => (GPU_OPTIONS.includes(g) ? g : GPU_ALIASES[g] || null)
+import {
+  ArrowUpRight,
+  ArrowRight,
+  Check,
+  Copy,
+  Download,
+  ShieldCheck,
+  FileText,
+  Mail,
+  LoaderCircle
+} from 'lucide-react'
+import { PageHero, Reveal } from '../components/ui'
+import {
+  GPU_OPTIONS,
+  DEPLOY_OPTIONS,
+  initialRequest,
+  buildBrief
+} from '../data/request'
+import {
+  REQUEST_EMAIL,
+  REQUEST_LIMITS,
+  prepareCapacityRequest,
+  canSubmitRequest,
+  capacityEmailLink,
+  submitCapacityRequest
+} from '../data/request-delivery'
 
 const FIELDS = [
-  { label: 'GPU Type', name: 'gpuType', type: 'select', options: GPU_OPTIONS },
-  { label: 'Number of GPUs / Nodes', name: 'gpuQty', placeholder: 'e.g. 8, 64, 1024', required: true },
-  { label: 'Required Location', name: 'location', placeholder: 'e.g. India, Europe, Global', required: true },
-  { label: 'Required Start Date', name: 'startDate', type: 'date' },
-  { label: 'Duration', name: 'duration', placeholder: 'e.g. 6 months, 3 years' },
-  { label: 'Workload', name: 'workload', placeholder: 'e.g. LLM training, inference' },
-  { label: 'Bare Metal / Managed', name: 'deployType', type: 'select', options: DEPLOY_OPTIONS },
-  { label: 'Company Name', name: 'company', placeholder: 'Acme AI Pvt Ltd', required: true },
-  { label: 'Business Email', name: 'email', type: 'email', placeholder: 'you@company.com', required: true },
-  { label: 'Phone / WhatsApp', name: 'phone', placeholder: '+91 ...' },
+  { label: 'GPU type', name: 'gpuType', options: GPU_OPTIONS },
+  {
+    label: 'Number of GPUs / nodes',
+    name: 'gpuQty',
+    placeholder: 'e.g. 8 GPUs or 4 nodes',
+    required: true
+  },
+  {
+    label: 'Required region',
+    name: 'location',
+    placeholder: 'e.g. India, Europe, flexible',
+    required: true
+  },
+  { label: 'Preferred start date', name: 'startDate', type: 'date' },
+  {
+    label: 'Duration',
+    name: 'duration',
+    placeholder: 'e.g. 6 months, 3 years'
+  },
+  { label: 'Deployment model', name: 'deployType', options: DEPLOY_OPTIONS },
+  {
+    label: 'Tell us about the workload',
+    name: 'workload',
+    placeholder: 'Model training, inference, fine-tuning…',
+    wide: true,
+    area: true
+  },
+  {
+    label: 'Company name',
+    name: 'company',
+    placeholder: 'Your organisation',
+    required: true,
+    autoComplete: 'organization'
+  },
+  {
+    label: 'Business email',
+    name: 'email',
+    placeholder: 'you@company.com',
+    type: 'email',
+    required: true,
+    autoComplete: 'email'
+  },
+  {
+    label: 'Phone / WhatsApp',
+    name: 'phone',
+    placeholder: '+91 …',
+    type: 'tel',
+    autoComplete: 'tel'
+  }
 ]
-
-const DEFAULTS = {
-  gpuType: 'H100', gpuQty: '', location: '', startDate: '', duration: '',
-  workload: '', deployType: 'Bare Metal', company: '', email: '', phone: '',
-}
 
 export default function FindCapacity() {
   const { state } = useLocation()
-  const [submitted, setSubmitted] = useState(false)
-  const [flash, setFlash] = useState(false)
-  const timersRef = useRef([])
-  const [form, setForm] = useState(() => {
-    const s = state || {}
-    return {
-      ...DEFAULTS,
-      gpuType: normalizeGpu(s.gpu) || DEFAULTS.gpuType,
-      gpuQty: s.gpuQty || '',
-      location: s.location || '',
-      workload: s.workload || '',
-      deployType: DEPLOY_OPTIONS.includes(s.deployType) ? s.deployType : DEFAULTS.deployType,
-    }
-  })
-
-  useEffect(() => () => timersRef.current.forEach(clearTimeout), [])
-
+  const [form, setForm] = useState(() => initialRequest(state || {}))
+  const [review, setReview] = useState(null)
+  const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState('')
+  const [consent, setConsent] = useState(false)
+  const [delivery, setDelivery] = useState('idle')
+  const [deliveryError, setDeliveryError] = useState('')
+  const [reviewError, setReviewError] = useState('')
+  const formErrorRef = useRef(null)
+  const sendingRef = useRef(false)
+  const statusRef = useRef(null)
+  const sending = delivery === 'sending'
+  const sent = delivery === 'sent'
+  const online = canSubmitRequest(
+    import.meta.env.VITE_NETLIFY_FORMS_ENABLED === 'true',
+    typeof window !== 'undefined' ? window.location.hostname : ''
+  )
+  const reviewRef = useRef(null)
   useEffect(() => {
-    if (state && Object.keys(state).length) {
-      setFlash(true)
-      timersRef.current.push(setTimeout(() => setFlash(false), 2400))
-    }
+    setForm(initialRequest(state || {}))
+    setReview(null)
+    setDelivery('idle')
+    setDeliveryError('')
+    setConsent(false)
+    setReviewError('')
   }, [state])
-
-  const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-
+  useEffect(() => {
+    if (review) reviewRef.current?.focus()
+  }, [review])
+  useEffect(() => {
+    if (delivery === 'sent' || delivery === 'error') statusRef.current?.focus()
+  }, [delivery])
+  useEffect(() => {
+    if (reviewError) formErrorRef.current?.focus()
+  }, [reviewError])
   const handleSubmit = (e) => {
     e.preventDefault()
-    fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ 'form-name': 'gpu-capacity', ...form }).toString()
-    }).catch(() => {})
-
-    const lines = [
-      `GPU Capacity Request - Anthroprime.ai`,
-      `GPU Type: ${form.gpuType}`,
-      `GPUs/Nodes: ${form.gpuQty}`,
-      `Location: ${form.location}`,
-      `Start: ${form.startDate || 'Flexible'}`,
-      `Duration: ${form.duration || 'TBD'}`,
-      `Workload: ${form.workload || 'TBD'}`,
-      `Deploy: ${form.deployType}`,
-      `Company: ${form.company}`,
-      `Email: ${form.email}`,
-      `Phone: ${form.phone || 'n/a'}`,
-    ]
-    const wa = `https://wa.me/919711554410?text=${encodeURIComponent(lines.join('\n'))}`
-    window.open(wa, '_blank')
-    setSubmitted(true)
-    timersRef.current.push(setTimeout(() => setSubmitted(false), 8000))
+    if (sendingRef.current || sent) return
+    const invalid = [...e.currentTarget.elements].find(
+      (field) => field.required && !String(field.value).trim()
+    )
+    if (invalid) {
+      invalid.setCustomValidity('Please complete this field.')
+      invalid.reportValidity()
+      return
+    }
+    try {
+      const trimmed = prepareCapacityRequest(form)
+      setForm(trimmed)
+      setReview(buildBrief(trimmed))
+      setReviewError('')
+    } catch (error) {
+      setReviewError(error.message)
+      return
+    }
+    setCopied(false)
+    setCopyError('')
+    setDelivery('idle')
+    setDeliveryError('')
+    setConsent(false)
   }
-
+  const handleChange = (e) => {
+    setReviewError('')
+    e.target.setCustomValidity?.('')
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
+    setReview(null)
+    setDelivery('idle')
+    setDeliveryError('')
+    setConsent(false)
+  }
+  const send = async () => {
+    if (sendingRef.current || sent || !review || !consent || !online) return
+    sendingRef.current = true
+    setDelivery('sending')
+    setDeliveryError('')
+    try {
+      await submitCapacityRequest(form, {
+        enabled: online,
+        hostname: window.location.hostname,
+        consent
+      })
+      setDelivery('sent')
+    } catch (error) {
+      setDelivery('error')
+      setDeliveryError(error.message)
+    } finally {
+      sendingRef.current = false
+    }
+  }
+  const copy = async () => {
+    setCopyError('')
+    try {
+      await navigator.clipboard.writeText(review)
+      setCopied(true)
+    } catch {
+      setCopied(false)
+      setCopyError(
+        'Copy is unavailable in this browser. Download the brief or select the text below.'
+      )
+    }
+  }
+  const download = () => {
+    const url = URL.createObjectURL(
+      new Blob([review], { type: 'text/plain;charset=utf-8' })
+    )
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'anthroprime-capacity-brief.txt'
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
   return (
     <>
       <PageHero
         crumb="Find GPU Capacity"
-        title="Need 8 GPUs"
-        highlight="or 8,000?"
-        sub="Tell us what you need. We'll identify the right infrastructure, location and commercial model, and come back with a comparable shortlist — not a sales pitch."
+        title="Your next chapter."
+        highlight="Starts with a brief."
+        sub="A few details about your ambition. We’ll help find the infrastructure to match. From 8 GPUs to your next dedicated cluster."
       />
-
-      <section className="pb-20 lg:pb-28 -mt-4">
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 grid lg:grid-cols-[0.8fr_1.2fr] gap-12 items-start">
-          {/* Left rail */}
-          <div className="lg:sticky lg:top-28 space-y-4">
-            <div className="rounded-2xl bg-surface border border-border p-6">
-              <div className="font-mono text-[11px] tracking-wide uppercase text-faint mb-4">What happens next</div>
-              <div className="space-y-4">
-                {[
-                  ['01', 'Feasibility read', 'We confirm availability across the network within 2–5 days.'],
-                  ['02', 'Comparable shortlist', 'Architecture, geography, deployment model and commercial terms — side by side.'],
-                  ['03', 'You contract direct', 'With the chosen provider. We coordinate deployment and stay on as your desk.'],
-                ].map(([n, t, d]) => (
-                  <div key={n} className="flex gap-3.5">
-                    <div className="w-8 h-8 rounded-full bg-bg border border-border flex items-center justify-center font-mono text-[11px] font-bold text-accent shrink-0">{n}</div>
-                    <div>
-                      <div className="font-display font-semibold text-[13.5px]">{t}</div>
-                      <div className="text-[12.5px] leading-[1.5] text-muted mt-0.5">{d}</div>
-                    </div>
+      <section className="pb-24">
+        <div className="wrap request-layout">
+          <Reveal className="request-sidebar">
+            <div className="eyebrow mono">A more considered conversation</div>
+            <h2 className="editorial-title">
+              Your workload.
+              <br />
+              <em>Our starting point.</em>
+            </h2>
+            <p className="text-muted text-[13px] leading-[1.9] mt-6">
+              Start with what you know. We’ll work through the architecture,
+              deployment options, and commercial model together.
+            </p>
+            <div className="request-steps">
+              {[
+                [
+                  '01',
+                  'Define the requirement',
+                  'GPU, scale, geography, and timing.'
+                ],
+                [
+                  '02',
+                  'Confirm your configuration',
+                  'GPU configuration, available capacity, and deployment terms.'
+                ],
+                [
+                  '03',
+                  'Move forward together',
+                  'Work directly with Anthroprime from agreement to deployment.'
+                ]
+              ].map(([n, t, d]) => (
+                <div key={n}>
+                  <span className="mono">{n}</span>
+                  <div>
+                    <h3>{t}</h3>
+                    <p>{d}</p>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-xl bg-bg border border-border p-4 flex gap-3">
-              <div className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0 text-accent">✓</div>
-              <div className="text-[12.5px] leading-[1.5] text-muted">
-                <span className="text-text font-medium">Privacy:</span> partner identities are disclosed to qualified buyers under NDA — never published without permission.
-              </div>
-            </div>
-          </div>
-
-          {/* Form */}
-          <motion.form
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            onSubmit={handleSubmit}
-            name="gpu-capacity"
-            data-netlify="true"
-            className={`rounded-[20px] bg-surface border p-6 lg:p-8 shadow-[0_16px_48px_rgba(0,0,0,0.3)] transition-all duration-500 ${flash ? 'border-accent/50 ring-2 ring-accent/30' : 'border-border'}`}
-          >
-            <input type="hidden" name="form-name" value="gpu-capacity" />
-            <p className="hidden" aria-hidden><input name="bot-field" tabIndex={-1} autoComplete="off" /></p>
-
-            {flash && (
-              <div className="mb-5 rounded-xl bg-accentDim border border-accent/20 px-4 py-2.5 font-mono text-[12px] text-accent">
-                Pre-filled from your selection — review and submit.
-              </div>
-            )}
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              {FIELDS.map((field) => (
-                <div key={field.name} className={`${field.name === 'workload' || field.name === 'company' ? 'sm:col-span-2' : ''} flex flex-col gap-1.5`}>
-                  <label htmlFor={`fc-${field.name}`} className="font-mono text-[11px] tracking-wide uppercase text-faint">
-                    {field.label} {field.required && <span className="text-accent">*</span>}
-                  </label>
-                  {field.type === 'select' ? (
-                    <select id={`fc-${field.name}`} name={field.name} value={form[field.name]} onChange={handleChange}
-                      className="w-full px-3.5 py-3 rounded-xl bg-bg border border-border text-[14px] text-text focus:outline-none focus:border-accent/50 focus:bg-surface2 transition-colors cursor-pointer">
-                      {field.options.map(o => <option key={o} value={o}>{o}</option>)}
-                    </select>
-                  ) : (
-                    <input id={`fc-${field.name}`} name={field.name} type={field.type || 'text'} value={form[field.name]} onChange={handleChange}
-                      placeholder={field.placeholder} required={field.required}
-                      className="w-full px-3.5 py-3 rounded-xl bg-bg border border-border text-[14px] text-text placeholder:text-faint focus:outline-none focus:border-accent/50 focus:bg-surface2 transition-colors" />
-                  )}
                 </div>
               ))}
             </div>
-
-            <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <button type="submit" className="px-6 py-3.5 rounded-xl bg-accent text-bg font-semibold text-[14px] hover:bg-accent2 hover:glow-strong transition-all glow">
-                Find GPU Capacity →
-              </button>
-              <span className="font-mono text-[11px] text-faint leading-[1.4]">Opens WhatsApp with your request pre-filled — nothing sends automatically. Also submitted to our desk via Netlify.</span>
+            <div className="request-privacy">
+              <ShieldCheck size={19} />
+              <p>
+                Your workload and deployment requirements can be discussed
+                confidentially under NDA.
+              </p>
             </div>
-
-            {submitted && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-6 rounded-xl bg-accentDim border border-accent/20 px-4 py-3 flex items-center gap-2 text-[13px] text-accent">
-                <span className="w-5 h-5 rounded-full bg-accent text-bg flex items-center justify-center text-[11px]">✓</span>
-                Request drafted — send it in WhatsApp to reach our desk. Our team will respond within 24h.
-              </motion.div>
+          </Reveal>
+          <div>
+            <form
+              className="capacity-form"
+              name="gpu-capacity"
+              method="POST"
+              data-netlify="true"
+              netlify-honeypot="bot-field"
+              onSubmit={handleSubmit}
+            >
+              <input type="hidden" name="form-name" value="gpu-capacity" />
+              <div hidden>
+                <label>
+                  Leave this empty
+                  <input
+                    name="bot-field"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={form['bot-field'] || ''}
+                    onChange={handleChange}
+                  />
+                </label>
+              </div>
+              <div className="form-heading">
+                <span className="mono">01 / Your capacity brief</span>
+                <FileText size={18} />
+              </div>
+              {!!state?.gpu && (
+                <p className="prefill-note">
+                  <Check size={14} />
+                  Prefilled from your selection. Make it yours.
+                </p>
+              )}
+              <fieldset className="request-fields" disabled={sending || sent}>
+                <legend className="sr-only">
+                  GPU capacity and contact details
+                </legend>
+                {FIELDS.map((field) => (
+                  <div
+                    key={field.name}
+                    className={field.wide ? 'field-wide' : ''}
+                  >
+                    <label htmlFor={`fc-${field.name}`}>
+                      {field.label}
+                      {field.required && <span aria-hidden="true"> *</span>}
+                    </label>
+                    {field.options ? (
+                      <select
+                        id={`fc-${field.name}`}
+                        name={field.name}
+                        value={form[field.name]}
+                        onChange={handleChange}
+                      >
+                        {field.options.map((o) => (
+                          <option key={o}>{o}</option>
+                        ))}
+                      </select>
+                    ) : field.area ? (
+                      <textarea
+                        id={`fc-${field.name}`}
+                        name={field.name}
+                        rows={3}
+                        maxLength={REQUEST_LIMITS[field.name]}
+                        value={form[field.name]}
+                        placeholder={field.placeholder}
+                        onChange={handleChange}
+                      />
+                    ) : (
+                      <input
+                        id={`fc-${field.name}`}
+                        name={field.name}
+                        type={field.type || 'text'}
+                        value={form[field.name]}
+                        placeholder={field.placeholder}
+                        required={field.required}
+                        autoComplete={field.autoComplete}
+                        maxLength={REQUEST_LIMITS[field.name]}
+                        onChange={handleChange}
+                      />
+                    )}
+                  </div>
+                ))}
+              </fieldset>
+              {reviewError && (
+                <p
+                  ref={formErrorRef}
+                  tabIndex={-1}
+                  role="alert"
+                  className="text-[13px] text-muted mt-5"
+                >
+                  {reviewError}
+                </p>
+              )}
+              <div className="form-submit">
+                <button
+                  className="btn btn-primary"
+                  type="submit"
+                  disabled={sending || sent}
+                >
+                  Review my request
+                  <ArrowRight />
+                </button>
+                <span>
+                  Review your details before sending to Anthroprime. Please keep
+                  this request non-sensitive.
+                </span>
+              </div>
+            </form>
+            {review && (
+              <section
+                className="request-review mt-6"
+                ref={reviewRef}
+                tabIndex={-1}
+                aria-label="Your capacity brief"
+              >
+                <span className="mono">
+                  02 / Ready for your next conversation
+                </span>
+                <h2 className="text-[23px] mt-4">
+                  {sent ? 'Request received.' : 'Your brief is ready.'}
+                </h2>
+                <p className="text-[12px] text-[#aab6cd] mt-2">
+                  {sent
+                    ? 'Thank you. Our team will follow up using the contact details you provided.'
+                    : `Review your requirements below. Send your request to our team, or email ${REQUEST_EMAIL} directly.`}
+                </p>
+                <pre>{review}</pre>
+                {!sent && (
+                  <div className="request-delivery">
+                    {online ? (
+                      <label className="request-consent">
+                        <input
+                          type="checkbox"
+                          name="consent"
+                          checked={consent}
+                          disabled={sending}
+                          onChange={(e) => setConsent(e.target.checked)}
+                        />
+                        <span>
+                          I agree that Anthroprime may use these details to
+                          respond to this GPU capacity request.
+                        </span>
+                      </label>
+                    ) : (
+                      <p className="text-[12px] leading-relaxed text-[#d4dbee]">
+                        This local preview does not send requests. Email your
+                        brief to {REQUEST_EMAIL}, or copy and save it below.
+                      </p>
+                    )}
+                    <button
+                      className="btn btn-gold mt-4"
+                      type="button"
+                      disabled={!online || !consent || sending}
+                      onClick={send}
+                    >
+                      {sending ? (
+                        <>
+                          <LoaderCircle className="animate-spin" /> Sending
+                          request…
+                        </>
+                      ) : (
+                        <>
+                          <Mail />{' '}
+                          {delivery === 'error'
+                            ? 'Retry request'
+                            : 'Send request'}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+                <p
+                  ref={statusRef}
+                  tabIndex={-1}
+                  role={delivery === 'error' ? 'alert' : 'status'}
+                  className="request-delivery-status"
+                  aria-live="polite"
+                >
+                  {deliveryError ||
+                    (sent
+                      ? 'Your request was received. Keep a copy of your brief for reference.'
+                      : sending
+                        ? 'Submitting your request. Please wait…'
+                        : '')}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <a className="btn btn-outline" href={capacityEmailLink(form)}>
+                    Email {REQUEST_EMAIL}
+                    <Mail />
+                  </a>
+                  <button
+                    className="btn btn-outline"
+                    type="button"
+                    onClick={copy}
+                  >
+                    {copied ? 'Copied' : 'Copy brief'}
+                    <Copy />
+                  </button>
+                  <button
+                    className="btn btn-outline"
+                    type="button"
+                    onClick={download}
+                  >
+                    Download
+                    <Download />
+                  </button>
+                  <a
+                    className="btn btn-outline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={`https://wa.me/919711554410?text=${encodeURIComponent(review)}`}
+                  >
+                    Open WhatsApp
+                    <ArrowUpRight />
+                  </a>
+                  {sent && (
+                    <button
+                      className="btn btn-outline"
+                      type="button"
+                      onClick={() => {
+                        setForm(initialRequest())
+                        setReview(null)
+                        setDelivery('idle')
+                        setConsent(false)
+                      }}
+                    >
+                      Start another request
+                      <ArrowRight />
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] mt-4 text-[#aab6cd]" role="status">
+                  {copyError ||
+                    (copied
+                      ? 'Brief copied to your clipboard.'
+                      : sent
+                        ? ''
+                        : 'No request has been sent until you choose a sending option.')}
+                </p>
+              </section>
             )}
-          </motion.form>
+          </div>
         </div>
       </section>
     </>

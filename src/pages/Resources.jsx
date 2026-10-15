@@ -1,46 +1,67 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, BarChart3, BookOpen, LineChart, Boxes } from 'lucide-react'
+import {
+  ArrowUpRight,
+  BarChart3,
+  BookOpen,
+  LineChart,
+  Boxes
+} from 'lucide-react'
 import { PageHero, Reveal, SectionHead } from '../components/ui'
-import { GPUS, GPU_ORDER } from '../data/gpus'
-import { capacitySummary, PROVIDER_META } from '../data/capacity'
+import { GPUS, GPU_ORDER, GPU_REFERENCES } from '../data/gpus'
 import FinalCTA from '../components/FinalCTA'
 
 const COMPARE_ROWS = [
-  ['GPU memory', g => g.specs['GPU memory'] || g.specs['GPUs per rack']],
-  ['Memory bandwidth', g => g.specs['Memory bandwidth'] || '—'],
-  ['FP8 Tensor (sparse)', g => g.specs['FP8 Tensor'] || g.specs['FP4 Tensor'] || '—'],
-  ['BF16 / FP16 Tensor', g => g.specs['BF16 / FP16 Tensor'] || '—'],
-  ['NVLink', g => g.specs['NVLink'] || g.specs['NVLink domain'] || '—'],
-  ['Max power', g => g.specs['Max power'] || '—'],
-  ['Generation', g => g.generation],
+  ['GPU memory', (g) => g.specs['GPU memory'] || g.specs['GPUs per rack']],
+  ['Memory bandwidth', (g) => g.specs['Memory bandwidth'] || '—'],
+  [
+    'FP8 / FP4 Tensor (as labelled)',
+    (g) => g.specs['FP8 Tensor'] || g.specs['FP4 Tensor'] || g.specs.FP8 || '—'
+  ],
+  ['BF16 / FP16 Tensor', (g) => g.specs['BF16 / FP16 Tensor'] || '—'],
+  ['NVLink', (g) => g.specs['NVLink'] || g.specs['NVLink domain'] || '—'],
+  ['Max power', (g) => g.specs['Max power'] || '—'],
+  ['Generation', (g) => g.generation]
 ]
 
 function CompareTool() {
   const [selected, setSelected] = useState(['h100', 'h200', 'b200'])
   const navigate = useNavigate()
 
-  const toggle = (slug) => setSelected(prev => {
-    if (prev.includes(slug)) return prev.length > 1 ? prev.filter(x => x !== slug) : prev
-    if (prev.length >= 3) return [...prev.slice(1), slug]
-    return [...prev, slug]
-  })
+  const toggle = (slug) =>
+    setSelected((prev) => {
+      if (prev.includes(slug))
+        return prev.length > 1 ? prev.filter((x) => x !== slug) : prev
+      if (prev.length >= 3) return [...prev.slice(1), slug]
+      return [...prev, slug]
+    })
 
   return (
-    <div id="comparison" className="scroll-mt-28 rounded-[20px] bg-surface border border-border overflow-hidden">
+    <div
+      id="comparison"
+      className="scroll-mt-28 rounded-[20px] bg-surface border border-border overflow-hidden"
+    >
       <div className="px-6 lg:px-8 pt-6 pb-4 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <div className="font-display font-semibold text-[17px]">GPU Comparison</div>
-          <div className="font-mono text-[12px] text-faint mt-0.5">Pick up to 3 accelerators · per NVIDIA public datasheets</div>
+          <div className="font-display font-semibold text-[17px]">
+            GPU Comparison
+          </div>
+          <div className="font-mono text-[12px] text-faint mt-0.5">
+            Pick up to 3 accelerators · per NVIDIA public datasheets
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {GPU_ORDER.map(slug => {
+          {GPU_ORDER.map((slug) => {
             const g = GPUS[slug]
             const on = selected.includes(slug)
             return (
-              <button key={slug} onClick={() => toggle(slug)} aria-pressed={on}
-                className={`px-3.5 py-1.5 rounded-full font-mono text-[12px] border transition-all ${on ? 'bg-accent text-bg border-accent glow' : 'bg-bg border-border text-muted hover:text-text hover:border-border2'}`}>
+              <button
+                key={slug}
+                onClick={() => toggle(slug)}
+                aria-pressed={on}
+                className={`px-3.5 py-1.5 rounded-full font-mono text-[12px] border transition-all ${on ? 'bg-accent text-bg border-accent glow' : 'bg-bg border-border text-muted hover:text-text hover:border-border2'}`}
+              >
                 {g.name}
               </button>
             )
@@ -48,20 +69,51 @@ function CompareTool() {
         </div>
       </div>
 
-      <motion.div key={selected.join('|')} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="overflow-x-auto">
+      <motion.div
+        key={selected.join('|')}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+        className="overflow-x-auto"
+        role="region"
+        aria-label="GPU comparison, horizontally scrollable"
+        tabIndex={0}
+      >
         <table className="w-full min-w-[680px]">
+          <caption className="sr-only">
+            GPU reference specifications comparison. Scroll horizontally on
+            smaller screens.
+          </caption>
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left font-mono text-[11px] tracking-wide uppercase text-faint font-medium px-6 lg:px-8 py-4 w-[190px]">Spec</th>
-              {selected.map(slug => {
+              <th className="text-left font-mono text-[11px] tracking-wide uppercase text-faint font-medium px-6 lg:px-8 py-4 w-[190px]">
+                Spec
+              </th>
+              {selected.map((slug) => {
                 const g = GPUS[slug]
                 return (
                   <th key={slug} className="text-left px-4 py-4">
-                    <div className="font-display font-bold text-[18px]">{g.name}</div>
-                    <div className="font-mono text-[10.5px] text-faint">{g.generation} · {g.tagline}</div>
+                    <div className="font-display font-bold text-[18px]">
+                      {g.name}
+                    </div>
+                    <div className="font-mono text-[10.5px] text-faint">
+                      {g.generation} · {g.tagline}
+                    </div>
                     <div className="mt-2 flex gap-2">
-                      <Link to={`/gpu/${slug}`} className="font-mono text-[10.5px] px-2.5 py-1 rounded-full border border-border text-muted hover:text-accent hover:border-accent/30 transition-colors">Specs →</Link>
-                      <button onClick={() => navigate('/find-capacity', { state: { gpu: g.name } })} className="font-mono text-[10.5px] px-2.5 py-1 rounded-full bg-accent text-bg font-semibold hover:bg-accent2 transition-colors">Source →</button>
+                      <Link
+                        to={`/gpu/${slug}`}
+                        className="font-mono text-[10.5px] px-2.5 py-1 rounded-full border border-border text-muted hover:text-accent hover:border-accent/30 transition-colors"
+                      >
+                        Specs →
+                      </Link>
+                      <button
+                        onClick={() =>
+                          navigate('/find-capacity', { state: { gpu: g.name } })
+                        }
+                        className="font-mono text-[10.5px] px-2.5 py-1 rounded-full bg-accent text-bg font-semibold hover:bg-accent2 transition-colors"
+                      >
+                        Request →
+                      </button>
                     </div>
                   </th>
                 )
@@ -70,10 +122,20 @@ function CompareTool() {
           </thead>
           <tbody className="divide-y divide-border">
             {COMPARE_ROWS.map(([label, get]) => (
-              <tr key={label} className="hover:bg-surface2/50 transition-colors">
-                <td className="px-6 lg:px-8 py-3.5 font-mono text-[11.5px] text-faint uppercase tracking-wide">{label}</td>
-                {selected.map(slug => (
-                  <td key={slug} className="px-4 py-3.5 font-mono text-[12.5px] text-text leading-[1.5]">{get(GPUS[slug])}</td>
+              <tr
+                key={label}
+                className="hover:bg-surface2/50 transition-colors"
+              >
+                <td className="px-6 lg:px-8 py-3.5 font-mono text-[11.5px] text-faint uppercase tracking-wide">
+                  {label}
+                </td>
+                {selected.map((slug) => (
+                  <td
+                    key={slug}
+                    className="px-4 py-3.5 font-mono text-[12.5px] text-text leading-[1.5]"
+                  >
+                    {get(GPUS[slug])}
+                  </td>
                 ))}
               </tr>
             ))}
@@ -81,77 +143,116 @@ function CompareTool() {
         </table>
       </motion.div>
       <div className="px-6 lg:px-8 py-4 border-t border-border font-mono text-[11px] text-faint">
-        * Sparse acceleration where applicable · Sources: NVIDIA public datasheets · Availability verified per mandate — never assumed.
+        * Sparse acceleration where applicable · Sources: NVIDIA public
+        datasheets · Availability verified per mandate — never assumed.
+        <div className="flex flex-wrap gap-x-4 gap-y-2 mt-3">
+          {selected.map((slug) => (
+            <a
+              key={slug}
+              href={GPU_REFERENCES[slug]}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent underline underline-offset-4"
+            >
+              NVIDIA {GPUS[slug].name} ↗
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   )
 }
 
-const FAMILY_LABEL = { h100: 'H100', h200: 'H200', b200: 'B200 / GB200', a100: 'A100', l40s: 'L40S', mi300x: 'Ent. Accelerators' }
-
-function Coverage() {
-  const rows = capacitySummary()
-    .filter(s => ['h100', 'h200', 'b200', 'a100', 'l40s'].includes(s.family))
-  const max = Math.max(...rows.map(s => s.providerCount))
-  const totalProviders = Object.keys(PROVIDER_META).length
-
+function DeploymentOptions() {
   return (
-    <div id="coverage" className="scroll-mt-28 rounded-[20px] bg-surface border border-border p-6 lg:p-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div
+      id="deployment"
+      className="rounded-[20px] bg-surface border border-border p-6 lg:p-8"
+    >
+      <div className="flex flex-wrap justify-between gap-5 items-start">
         <div>
-          <div className="font-display font-semibold text-[17px]">Network Coverage by Accelerator</div>
-          <div className="font-mono text-[12px] text-faint mt-0.5">How many providers in our network offer each family — breadth of choice per mandate.</div>
+          <h2 className="font-display font-semibold text-[22px]">
+            Choose how you deploy.
+          </h2>
+          <p className="text-[13px] text-muted mt-2">
+            GPU infrastructure from Anthroprime, configured around your
+            workload.
+          </p>
         </div>
-        <Link to="/marketplace" className="inline-flex items-center gap-1.5 font-mono text-[12px] text-accent hover:underline shrink-0">Full marketplace <ArrowUpRight className="w-3.5 h-3.5" /></Link>
+        <Link to="/find-capacity" className="text-link">
+          Discuss your deployment
+          <ArrowUpRight size={16} />
+        </Link>
       </div>
-
-      <div className="mt-6 space-y-4">
-        {rows.map(s => (
-          <div key={s.family} className="grid grid-cols-[70px_1fr_150px] sm:grid-cols-[90px_1fr_220px] items-center gap-4">
-            <div className="font-mono font-bold text-[13.5px]">{FAMILY_LABEL[s.family] || s.family}</div>
-            <div className="h-7 rounded-lg bg-bg border border-border overflow-hidden relative">
-              <motion.div
-                initial={{ width: 0 }}
-                whileInView={{ width: `${Math.max(6, (s.providerCount / max) * 100)}%` }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-                className="h-full rounded-lg bg-gradient-to-r from-accent/70 to-accent/30"
-              />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[11.5px] font-bold text-text">{s.providerCount} providers</span>
-            </div>
-            <div className="font-mono text-[10.5px] text-faint leading-tight hidden sm:block">
-              {s.count} configurations · up to {s.vram} GB per GPU
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-6 pt-5 border-t border-border grid sm:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-3 gap-6 mt-8">
         {[
-          ['Commitment', 'On-demand, reserved, bare-metal and private-cloud terms each suit a different horizon. We match the model to your roadmap.'],
-          ['Configuration', 'Interconnect, storage tier and node shape change effective throughput more than the badge on the GPU does.'],
-          ['Geography', 'The same accelerator is available in some regions and scarce in others — sourcing geography is an availability lever.'],
-        ].map(([t, d]) => (
-          <div key={t}>
-            <div className="font-display font-semibold text-[13.5px]">{t}</div>
-            <div className="text-[12px] leading-[1.55] text-muted mt-1">{d}</div>
+          [
+            'Bare Metal',
+            'Direct access to a dedicated GPU environment for your own software stack.'
+          ],
+          [
+            'Dedicated / Reserved',
+            'Plan dedicated GPU capacity around the scale and duration of your project.'
+          ],
+          [
+            'Managed',
+            'Discuss deployment, orchestration, monitoring, and infrastructure support with our team.'
+          ]
+        ].map(([title, desc]) => (
+          <div className="border-t border-border pt-5" key={title}>
+            <h3 className="font-semibold text-[15px]">{title}</h3>
+            <p className="text-[13px] text-muted leading-relaxed mt-3">
+              {desc}
+            </p>
+            <Link
+              to="/find-capacity"
+              state={{ deployType: title }}
+              className="text-link mt-3"
+            >
+              Request capacity
+              <ArrowUpRight size={14} />
+            </Link>
           </div>
         ))}
       </div>
-
-      <div className="mt-6 font-mono text-[11px] text-faint">
-        {totalProviders} providers tracked across our infrastructure network · availability and commercials verified per mandate.
-      </div>
+      <p className="text-[11px] text-faint mt-7">
+        GPU specifications are reference figures. Configuration, regional
+        availability, and commercial terms are confirmed on request.
+      </p>
     </div>
   )
 }
 
 export default function Resources() {
   const guides = [
-    { icon: BookOpen, tag: 'In Progress', title: 'AI Infrastructure Guides', desc: 'Choosing between on-demand, reserved, bare-metal and private cloud — with decision trees from live mandates.' },
-    { icon: Boxes, tag: 'In Progress', title: 'Architecture Guides', desc: 'Network, storage and orchestration patterns for large-scale training and inference clusters.' },
-    { icon: BarChart3, tag: 'In Progress', title: 'Benchmark Library', desc: 'Workload-specific throughput benchmarks, published as mandates allow.' },
-    { icon: LineChart, tag: 'Coming Soon', title: 'Blog', desc: 'Field notes from the capacity desk — sourcing, verification and deployment learnings.' },
+    {
+      icon: BookOpen,
+      tag: 'Explore',
+      title: 'Inside a GPU',
+      desc: 'Explore compute engines, memory, interconnects, and the system around the silicon.',
+      to: '/gpu-lab#architecture'
+    },
+    {
+      icon: Boxes,
+      tag: 'Experiment',
+      title: 'Model Memory Essentials',
+      desc: 'Change model size and precision to understand the weight-storage footprint.',
+      to: '/gpu-lab#memory'
+    },
+    {
+      icon: BarChart3,
+      tag: 'Follow the flow',
+      title: 'Training vs. Inference',
+      desc: 'Follow the stages behind learning a model and generating a response.',
+      to: '/gpu-lab#workflows'
+    },
+    {
+      icon: LineChart,
+      tag: 'Try it',
+      title: 'Parallelism in Practice',
+      desc: 'Discover what changes when work is independent, and what happens when it is not.',
+      to: '/gpu-lab#parallel'
+    }
   ]
 
   return (
@@ -160,32 +261,76 @@ export default function Resources() {
         crumb="Resources"
         title="Compare first."
         highlight="Then decide."
-        sub="Datasheet-accurate GPU comparisons, network coverage by accelerator, and the guides we build from real mandates."
+        sub="Datasheet-accurate GPU comparisons, deployment options, and infrastructure guides to help you plan your next workload."
       />
 
       <section className="pb-20 lg:pb-28">
         <div className="max-w-[1280px] mx-auto px-6 lg:px-8 space-y-10">
-          <Reveal><CompareTool /></Reveal>
-          <Reveal><Coverage /></Reveal>
+          <Reveal className="resource-lab-banner">
+            <img
+              src="/images/gpu-silicon.jpg"
+              alt="Generated concept artwork of a GPU package"
+              width="1536"
+              height="1024"
+              loading="lazy"
+            />
+            <div>
+              <span className="mono">Introducing the GPU Lab</span>
+              <h2>Go beyond the specification.</h2>
+              <p>
+                Explore the architecture, run a parallelism experiment, and see
+                how model weights occupy memory.
+              </p>
+              <Link to="/gpu-lab" className="text-link">
+                Open the interactive lab
+                <ArrowUpRight size={15} />
+              </Link>
+            </div>
+          </Reveal>
+          <Reveal>
+            <CompareTool />
+          </Reveal>
+          <Reveal>
+            <DeploymentOptions />
+          </Reveal>
 
           <div id="guides" className="scroll-mt-28">
-            <SectionHead tag="Guides & Writing" title="Knowledge, built from live mandates." />
+            <SectionHead
+              tag="Learn by exploring"
+              title="Good questions. Hands-on answers."
+            />
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
               {guides.map((g, i) => (
                 <Reveal key={g.title} delay={i * 0.05}>
-                  <div className="rounded-2xl bg-surface border border-dashed border-border p-6 hover:border-border2 hover:bg-surface2 hover:-translate-y-0.5 transition-all h-full">
+                  <Link
+                    to={g.to}
+                    className="block rounded-2xl bg-surface border border-border p-6 hover:border-border2 hover:bg-surface2 hover:-translate-y-0.5 transition-all h-full"
+                  >
                     <div className="flex items-center justify-between">
                       <g.icon className="w-5 h-5 text-faint" />
-                      <span className="font-mono text-[10px] tracking-wide uppercase px-2.5 py-1 rounded-full bg-surface3 border border-border text-faint">{g.tag}</span>
+                      <span className="font-mono text-[10px] tracking-wide uppercase px-2.5 py-1 rounded-full bg-surface3 border border-border text-faint">
+                        {g.tag}
+                      </span>
                     </div>
-                    <h3 className="font-display font-semibold text-[15.5px] mt-4">{g.title}</h3>
-                    <p className="text-[13px] leading-[1.5] text-muted mt-2">{g.desc}</p>
-                  </div>
+                    <h3 className="font-display font-semibold text-[15.5px] mt-4">
+                      {g.title}
+                    </h3>
+                    <p className="text-[13px] leading-[1.5] text-muted mt-2">
+                      {g.desc}
+                    </p>
+                    <span className="inline-flex items-center gap-2 text-[11px] text-accent mt-5">
+                      Open the guide
+                      <ArrowUpRight size={13} />
+                    </span>
+                  </Link>
                 </Reveal>
               ))}
             </div>
             <div className="mt-6 font-mono text-[12px] text-faint">
-              Need the knowledge now? It already lives with our desk — <Link to="/contact" className="text-accent hover:underline">talk to an expert →</Link>
+              Need the knowledge now? It already lives with our desk —{' '}
+              <Link to="/contact" className="text-accent hover:underline">
+                talk to an expert →
+              </Link>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -6,34 +6,66 @@
     <link rel="apple-touch-icon" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Anthroprime.ai — Global GPU Infrastructure. One Partner.</title>
-    <meta name="description" content="Anthroprime.ai connects enterprises, AI companies and research organizations with GPU infrastructure across multiple cloud providers, data centers and infrastructure partners. One Partner. Global GPU Infrastructure." />
+    <meta
+      name="description"
+      content="Anthroprime.ai provides GPU infrastructure for enterprises, AI companies and research organizations. Dedicated GPU capacity, clusters and managed AI infrastructure. One Partner. Global GPU Infrastructure."
+    />
+    <meta name="theme-color" content="#f5f4f1" />
     <script>
       /* Set theme before first paint to avoid a flash of the wrong theme. */
-      (function () {
+      ;(function () {
         try {
-          var root = document.documentElement;
-          var saved = null;
-          try { saved = localStorage.getItem('ap-theme'); } catch (e) {}
-          var dark = saved === 'dark';
-          root.classList.toggle('dark', dark);
-          var meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.setAttribute('content', dark ? '#070A0F' : '#F9FAFB');
+          var root = document.documentElement
+          var saved = null
+          try {
+            saved = localStorage.getItem('ap-theme')
+          } catch (e) {}
+          var dark = saved === 'dark'
+          root.classList.toggle('dark', dark)
+          var meta = document.querySelector('meta[name="theme-color"]')
+          if (meta) meta.setAttribute('content', dark ? '#0f182b' : '#f5f4f1')
         } catch (e) {}
-      })();
+      })()
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <meta property="og:title" content="Anthroprime.ai — Global GPU Infrastructure. One Partner." />
-    <meta property="og:description" content="Source and deploy enterprise AI infrastructure across a global network of GPU clouds, data centers and infrastructure providers." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <meta
+      property="og:title"
+      content="Anthroprime.ai — Global GPU Infrastructure. One Partner."
+    />
+    <meta
+      property="og:description"
+      content="Deploy and scale with Anthroprime GPU infrastructure, dedicated clusters and managed AI environments."
+    />
     <meta property="og:type" content="website" />
-    <meta name="theme-color" content="#070A0F" />
   </head>
-  <body class="bg-bg text-text antialiased selection:bg-accent selection:text-bg">
+  <body
+    class="bg-bg text-text antialiased selection:bg-accent selection:text-bg"
+  >
     <div id="root"></div>
+    <noscript
+      ><p>
+        Enable JavaScript to explore Anthroprime GPU infrastructure. You can
+        also contact
+        <a href="mailto:hello@anthroprime.com">hello@anthroprime.com</a>
+        directly.
+      </p></noscript
+    >
     <script type="module" src="/src/main.jsx"></script>
     <!-- Netlify form detection -->
-    <form name="gpu-capacity" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <form
+      name="gpu-capacity"
+      method="POST"
+      data-netlify="true"
+      netlify-honeypot="bot-field"
+      hidden
+    >
+      <input type="hidden" name="form-name" value="gpu-capacity" />
+      <input
+        type="hidden"
+        name="subject"
+        value="GPU capacity request — Anthroprime"
+      />
       <input type="text" name="bot-field" />
       <input type="text" name="gpuType" />
       <input type="text" name="gpuQty" />
@@ -45,6 +77,8 @@
       <input type="text" name="company" />
       <input type="email" name="email" />
       <input type="text" name="phone" />
+      <input type="text" name="consent" />
+      <textarea name="brief"></textarea>
     </form>
   </body>
 </html>

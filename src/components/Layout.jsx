@@ -1,387 +1,425 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { Suspense, useState, useEffect, useRef } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Menu, X, ArrowUpRight } from 'lucide-react'
-import ScrollProgress from './ScrollProgress'
-import BackToTop from './BackToTop'
-import ThemeToggle from './ThemeToggle'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  ArrowUpRight,
+  ArrowUp,
+  ChevronDown,
+  Menu,
+  X,
+  Sun,
+  Moon,
+  Pause,
+  Play
+} from 'lucide-react'
 import LogoMark from './LogoMark'
+import ScrollProgress from './ScrollProgress'
 import { GPU_NAV, GPUS } from '../data/gpus'
-import { SOLUTIONS, solutionBySlug } from '../data/solutions'
+import { SOLUTIONS } from '../data/solutions'
+import { getPageMeta, PUBLIC_ROUTES } from '../data/metadata'
 import { SERVICES } from '../data/services'
-
-/** Per-route <title> / meta-description (the SPA ships a single index.html). */
-const PAGE_META = {
-  '/': {
-    title: 'Anthroprime.ai — Global GPU Infrastructure. One Partner.',
-    desc: 'Source and deploy enterprise AI infrastructure across a global network of GPU clouds, data centers and infrastructure providers.',
-  },
-  '/marketplace': {
-    title: 'GPU Capacity Marketplace — Anthroprime.ai',
-    desc: 'Accelerator families, configurations and deployment models tracked across our global GPU infrastructure network — availability and commercials quoted per mandate.',
-  },
-  '/solutions': {
-    title: 'AI Infrastructure Solutions — Anthroprime.ai',
-    desc: 'Training, inference, dedicated clusters, private AI cloud, HPC and sovereign AI infrastructure — designed and sourced end-to-end.',
-  },
-  '/services': {
-    title: 'AI Infrastructure Services — Anthroprime.ai',
-    desc: 'GPU capacity sourcing, AI infrastructure advisory, cluster deployment, managed infrastructure and security.',
-  },
-  '/resources': {
-    title: 'GPU Comparison & Resources — Anthroprime.ai',
-    desc: 'Datasheet-accurate GPU comparisons, network coverage by accelerator and AI infrastructure guides.',
-  },
-  '/about': {
-    title: 'About — Anthroprime.ai',
-    desc: 'The AI infrastructure practice of Anthroprime Technology. India-led, globally connected and provider-agnostic.',
-  },
-  '/contact': {
-    title: 'Contact — Anthroprime.ai',
-    desc: 'Talk to the desk on WhatsApp or email, or start with a GPU capacity request. Response within 24 hours.',
-  },
-  '/find-capacity': {
-    title: 'Find GPU Capacity — Anthroprime.ai',
-    desc: 'Tell us what you need — GPU type, quantity, location and duration — and we return a comparable shortlist.',
-  },
-}
+import { useTheme, applyTheme } from '../theme'
+import { useMotionSettings } from './MotionSettings'
 
 function useDocumentMeta() {
   const { pathname } = useLocation()
   useEffect(() => {
-    const seg = pathname.split('/').filter(Boolean)
-    let title = 'Anthroprime.ai — Global GPU Infrastructure. One Partner.'
-    let desc = ''
-
-    if (seg.length === 0) {
-      title = PAGE_META['/'].title
-      desc = PAGE_META['/'].desc
-    } else if (seg[0] === 'gpu' && seg[1]) {
-      const g = GPUS[seg[1]]
-      if (g) {
-        title = `${g.full} — Specs & Capacity | Anthroprime.ai`
-        desc = g.desc
+    const meta = getPageMeta(pathname)
+    const canonicalPath = pathname.replace(/\/+$/, '') || '/'
+    let robots = document.querySelector('meta[name="robots"]')
+    if (!PUBLIC_ROUTES.includes(canonicalPath)) {
+      if (!robots) {
+        robots = document.createElement('meta')
+        robots.name = 'robots'
+        document.head.appendChild(robots)
       }
-    } else if (seg[0] === 'solutions' && seg[1]) {
-      const s = solutionBySlug(seg[1])
-      if (s) {
-        title = `${s.name} — Anthroprime.ai`
-        desc = s.short
-      }
-    } else if (PAGE_META[`/${seg[0]}`]) {
-      title = PAGE_META[`/${seg[0]}`].title
-      desc = PAGE_META[`/${seg[0]}`].desc
-    } else {
-      title = 'Page not found — Anthroprime.ai'
-      desc = 'The page you were looking for does not exist. Explore GPU capacity, solutions and services on Anthroprime.ai.'
+      robots.content = 'noindex'
+    } else robots?.remove()
+    document.title = meta[0]
+    const canonical = document.querySelector('link[rel="canonical"]')
+    if (canonical) {
+      const url = new URL(canonical.href)
+      url.pathname = canonicalPath
+      canonical.href = url.href
+      document
+        .querySelector('meta[property="og:url"]')
+        ?.setAttribute('content', url.href)
     }
-
-    document.title = title
-    if (desc) {
-      let el = document.querySelector('meta[name="description"]')
-      if (!el) {
-        el = document.createElement('meta')
-        el.setAttribute('name', 'description')
-        document.head.appendChild(el)
-      }
-      el.setAttribute('content', desc)
-    }
+    for (const [selector, attr, content] of [
+      ['meta[name="description"]', 'content', meta[1]],
+      ['meta[property="og:title"]', 'content', meta[0]],
+      ['meta[property="og:description"]', 'content', meta[1]]
+    ])
+      document.querySelector(selector)?.setAttribute(attr, content)
   }, [pathname])
 }
 
-const nav = [
-  { label: 'Home', to: '/' },
+const navigation = [
   {
     label: 'GPU Cloud',
-    children: GPU_NAV.map(g => ({ label: g.label, desc: g.desc, to: `/gpu/${g.slug}` })),
+    links: [
+      { label: 'Our GPU offerings', to: '/#capacity' },
+      ...GPU_NAV.map((g) => ({
+        label: g.label || g.name || GPUS[g.slug]?.name,
+        to: g.to || `/gpu/${g.slug}`
+      }))
+    ]
   },
   {
     label: 'Solutions',
-    children: SOLUTIONS.map(s => ({ label: s.name, to: `/solutions/${s.slug}` })),
+    links: SOLUTIONS.map((s) => ({ label: s.name, to: `/solutions/${s.slug}` }))
   },
   {
     label: 'Services',
-    children: SERVICES.map(s => ({ label: s.name, to: `/services#${s.id}` })),
-  },
-  {
-    label: 'Resources',
-    children: [
-      { label: 'GPU Comparison', to: '/resources#comparison' },
-      { label: 'GPU Marketplace', to: '/marketplace' },
-      { label: 'Network Coverage', to: '/resources#coverage' },
-      { label: 'AI Infrastructure Guides', to: '/resources#guides' },
-      { label: 'Architecture Guides', to: '/resources#guides' },
-    ],
-  },
-  {
-    label: 'Company',
-    children: [
-      { label: 'About Us', to: '/about' },
-      { label: 'Partners', to: '/about#partners' },
-      { label: 'Contact', to: '/contact' },
-    ],
-  },
+    links: SERVICES.map((s) => ({ label: s.name, to: `/services#${s.id}` }))
+  }
 ]
 
 export function Navbar() {
-  const [scrolled, setScrolled] = useState(false)
+  const { pathname, hash } = useLocation()
   const [openMenu, setOpenMenu] = useState(null)
-  const [pinned, setPinned] = useState(false)
+  const [pinnedMenu, setPinnedMenu] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const navRef = useRef(null)
-  const { pathname } = useLocation()
-
+  const ref = useRef()
+  const theme = useTheme()
+  const { paused, toggle, reduced } = useMotionSettings()
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    setOpenMenu(null)
+    setPinnedMenu(null)
+    setMobileOpen(false)
+  }, [pathname, hash])
+  useEffect(() => {
+    const close = (e) => {
+      if (!ref.current?.contains(e.target)) {
+        setOpenMenu(null)
+        setPinnedMenu(null)
+        setMobileOpen(false)
+      }
+    }
+    const escape = (e) => {
+      if (e.key === 'Escape') {
+        const expanded = ref.current?.querySelector(
+          'button.nav-link[aria-expanded="true"]'
+        )
+        const mobile = ref.current?.querySelector(
+          '.mobile-toggle[aria-expanded="true"]'
+        )
+        setOpenMenu(null)
+        setPinnedMenu(null)
+        setMobileOpen(false)
+        ;(mobile || expanded)?.focus()
+      }
+    }
+    document.addEventListener('pointerdown', close)
+    document.addEventListener('keydown', escape)
+    return () => {
+      document.removeEventListener('pointerdown', close)
+      document.removeEventListener('keydown', escape)
+    }
   }, [])
-
-  useEffect(() => {
-    if (!openMenu) return
-    const onKey = (e) => { if (e.key === 'Escape') { setOpenMenu(null); setPinned(false) } }
-    const onClick = (e) => { if (navRef.current && !navRef.current.contains(e.target)) { setOpenMenu(null); setPinned(false) } }
-    document.addEventListener('keydown', onKey)
-    document.addEventListener('click', onClick)
-    return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('click', onClick) }
-  }, [openMenu])
-
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? 'hidden' : ''
-    const onKey = (e) => { if (e.key === 'Escape') setMobileOpen(false) }
-    if (mobileOpen) document.addEventListener('keydown', onKey)
-    return () => { document.body.style.overflow = ''; document.removeEventListener('keydown', onKey) }
-  }, [mobileOpen])
-
-  // close everything on navigation
-  useEffect(() => { setOpenMenu(null); setPinned(false); setMobileOpen(false) }, [pathname])
-
-  const closeMenu = () => { setOpenMenu(null); setPinned(false) }
-
   return (
-    <>
-      <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'glass-strong shadow-[0_8px_32px_rgba(0,0,0,0.4)]' : 'bg-transparent border-b border-transparent'}`}>
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-8 h-[72px] flex items-center justify-between">
-          <Link to="/" className="flex items-center shrink-0" aria-label="Anthroprime — home">
-            <LogoMark boxClassName="h-6 sm:h-8 lg:h-6 xl:h-8 w-auto" />
-          </Link>
-
-          <nav ref={navRef} className="hidden lg:flex items-center gap-0" aria-label="Main">
-            {nav.map((item) => (
-              <div
-                key={item.label}
-                className="relative"
-                onMouseEnter={() => item.children && setOpenMenu(item.label)}
-                onMouseLeave={() => { if (!pinned) setOpenMenu(null) }}
+    <header className="site-header" ref={ref}>
+      <div className="wrap header-inner">
+        <Link to="/" aria-label="Anthroprime home">
+          <LogoMark />
+        </Link>
+        <nav className="desktop-nav" aria-label="Main navigation">
+          {navigation.map((item) => (
+            <div
+              className="nav-item"
+              key={item.label}
+              onMouseEnter={() => {
+                if (!pinnedMenu) setOpenMenu(item.label)
+              }}
+              onMouseLeave={(e) => {
+                if (
+                  !pinnedMenu &&
+                  !e.currentTarget.contains(document.activeElement)
+                )
+                  setOpenMenu(null)
+              }}
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                  setOpenMenu(null)
+                  setPinnedMenu(null)
+                }
+              }}
+            >
+              <button
+                className="nav-link"
+                aria-expanded={openMenu === item.label}
+                aria-controls={`nav-${item.label.replace(/ /g, '-')}`}
+                onClick={() => {
+                  const next = pinnedMenu === item.label ? null : item.label
+                  setPinnedMenu(next)
+                  setOpenMenu(next)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault()
+                    setOpenMenu(item.label)
+                    setPinnedMenu(item.label)
+                    const trigger = e.currentTarget
+                    requestAnimationFrame(() =>
+                      trigger.parentElement
+                        ?.querySelector('.nav-dropdown a')
+                        ?.focus()
+                    )
+                  }
+                }}
               >
-                {item.children ? (
-                  <button
-                    aria-haspopup="true"
-                    aria-expanded={openMenu === item.label}
-                    onClick={() => openMenu === item.label && pinned ? closeMenu() : (setOpenMenu(item.label), setPinned(true))}
-                    className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[14px] font-medium transition-colors ${openMenu === item.label ? 'bg-surface2 text-text' : 'text-muted hover:text-text hover:bg-surface2'}`}
+                {item.label}
+                <ChevronDown />
+              </button>
+              <AnimatePresence>
+                {openMenu === item.label && (
+                  <motion.div
+                    id={`nav-${item.label.replace(/ /g, '-')}`}
+                    className="nav-dropdown"
+                    initial={paused ? false : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
                   >
-                    {item.label}
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openMenu === item.label ? 'rotate-180' : ''}`} />
-                  </button>
-                ) : (
-                  <NavLink to={item.to} end className={({ isActive }) => `px-2.5 py-2 rounded-lg text-[14px] font-medium transition-colors ${isActive ? 'text-text bg-surface2' : 'text-muted hover:text-text hover:bg-surface2'}`}>
-                    {item.label}
-                  </NavLink>
+                    {item.links.map((l, i) => (
+                      <Link key={l.to} to={l.to}>
+                        {l.label}
+                        <span>{String(i + 1).padStart(2, '0')} ↗</span>
+                      </Link>
+                    ))}
+                  </motion.div>
                 )}
-
-                <AnimatePresence>
-                  {item.children && openMenu === item.label && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      transition={{ duration: 0.18 }}
-                      className="absolute top-full left-1/2 -translate-x-1/2 pt-2.5 z-50"
-                    >
-                      <div className="min-w-[290px] glass-strong rounded-xl p-2 shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
-                        {item.children.map((child) => (
-                          <Link key={child.label} to={child.to} onClick={closeMenu} className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-lg hover:bg-surface2 group transition-colors">
-                            <span className="text-[13.5px] font-medium text-text group-hover:text-accent transition-colors">{child.label}</span>
-                            {child.desc && <span className="font-mono text-[11px] text-faint whitespace-nowrap">{child.desc}</span>}
-                          </Link>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </nav>
-
-          <div className="hidden lg:flex items-center gap-2">
-            <ThemeToggle />
-            <Link to="/contact" className="hidden xl:inline-flex px-4 py-2.5 rounded-lg text-[13.5px] font-medium text-muted hover:text-text border border-border hover:border-border2 transition-all">Talk to an Expert</Link>
-            <Link to="/find-capacity" className="px-3 py-2.5 rounded-lg text-[13.5px] font-semibold bg-accent text-bg hover:bg-accent2 transition-colors flex items-center gap-1.5 whitespace-nowrap">
-              Find GPU Capacity <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="lg:hidden flex items-center gap-2">
-            <ThemeToggle />
-            <button onClick={() => setMobileOpen(!mobileOpen)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} className="w-10 h-10 rounded-lg border border-border flex items-center justify-center text-text">
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40 lg:hidden bg-bg/95 backdrop-blur-xl pt-[72px] overflow-y-auto">
-            <div className="p-6 space-y-5">
-              {nav.map((item) => (
-                <div key={item.label}>
-                  {item.children ? (
-                    <details className="group">
-                      <summary className="flex items-center justify-between py-3 font-display font-semibold text-[16px] cursor-pointer list-none">
-                        {item.label}
-                        <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
-                      </summary>
-                      <div className="pl-2 pb-2 space-y-1 mt-1">
-                        {item.children.map((c) => (
-                          <Link key={c.label} to={c.to} onClick={() => setMobileOpen(false)} className="block py-2.5 px-3 rounded-lg bg-surface border border-border text-[14px] text-muted hover:text-text">{c.label}</Link>
-                        ))}
-                      </div>
-                    </details>
-                  ) : (
-                    <Link to={item.to} onClick={() => setMobileOpen(false)} className="block py-3 font-display font-semibold text-[16px]">{item.label}</Link>
-                  )}
-                </div>
-              ))}
-              <div className="pt-6 flex flex-col gap-3">
-                <Link to="/contact" onClick={() => setMobileOpen(false)} className="w-full py-3.5 rounded-xl border border-border text-center font-medium">Talk to an Expert</Link>
-                <Link to="/find-capacity" onClick={() => setMobileOpen(false)} className="w-full py-3.5 rounded-xl bg-accent text-bg text-center font-semibold">Find GPU Capacity</Link>
-              </div>
+              </AnimatePresence>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+          ))}
+          <NavLink className="nav-link" to="/resources">
+            Resources
+          </NavLink>
+          <NavLink className="nav-link nav-lab" to="/gpu-lab">
+            GPU Lab <span className="lab-nav-dot" aria-hidden="true" />
+          </NavLink>
+          <NavLink className="nav-link" to="/about">
+            Our practice
+          </NavLink>
+        </nav>
+        <div className="header-actions">
+          <button
+            className="icon-button"
+            aria-label={
+              theme === 'dark'
+                ? 'Switch to light theme'
+                : 'Switch to dark theme'
+            }
+            onClick={() => applyTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? <Sun /> : <Moon />}
+          </button>
+          <button
+            className="icon-button"
+            aria-label={
+              paused ? 'Resume visual effects' : 'Pause visual effects'
+            }
+            aria-pressed={paused}
+            disabled={!!reduced}
+            title={
+              reduced ? 'Reduced motion is enabled on your device' : undefined
+            }
+            onClick={toggle}
+          >
+            {paused ? <Play /> : <Pause />}
+          </button>
+          <Link className="btn btn-primary header-cta" to="/find-capacity">
+            Find GPU Capacity
+            <ArrowUpRight />
+          </Link>
+          <button
+            className="icon-button mobile-toggle"
+            aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X /> : <Menu />}
+          </button>
+        </div>
+      </div>
+      {mobileOpen && (
+        <nav
+          id="mobile-navigation"
+          className="mobile-menu"
+          aria-label="Mobile navigation"
+        >
+          {[
+            ['Home', '/'],
+            ['GPU Cloud', '/#capacity'],
+            ['Solutions', '/solutions'],
+            ['Services', '/services'],
+            ['Resources', '/resources'],
+            ['GPU Lab', '/gpu-lab'],
+            ['Our practice', '/about'],
+            ['Contact the desk', '/contact'],
+            ['Find GPU Capacity', '/find-capacity']
+          ].map(([label, to]) => (
+            <Link key={to} to={to}>
+              {label}
+              <ArrowUpRight size={15} />
+            </Link>
+          ))}
+        </nav>
+      )}
+    </header>
   )
 }
 
 export function Footer() {
+  const labels = {
+    'svc-sourcing': 'GPU provisioning',
+    'svc-advisory': 'Architecture advisory',
+    'svc-deployment': 'Cluster deployment',
+    'svc-managed': 'Managed Infra',
+    'svc-security': 'Infrastructure security'
+  }
   return (
-    <footer className="border-t border-border pt-16 pb-8 bg-bg relative overflow-hidden">
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[200px] bg-accent/5 rounded-full blur-[100px]" aria-hidden />
-      <div className="relative max-w-[1280px] mx-auto px-6 lg:px-8">
-        <div className="grid lg:grid-cols-[1.4fr_repeat(4,1fr)] gap-10">
+    <footer className="site-footer">
+      <div className="wrap">
+        <div className="footer-top">
           <div>
-            <div className="flex items-center">
-              <LogoMark boxClassName="h-9 w-auto" textClassName="text-[22px]" />
-            </div>
-            <p className="text-[13px] leading-[1.5] text-muted mt-4 max-w-[280px]">
-              An asset-light AI infrastructure advisory and GPU capacity sourcing desk. We source and verify — you contract directly with the provider. <span className="text-text font-medium">Global GPU Infrastructure. One Partner.</span>
+            <Link to="/" aria-label="Anthroprime home">
+              <LogoMark />
+            </Link>
+            <p className="footer-intro">
+              Human perspective.
+              <br />
+              Extraordinary infrastructure.
             </p>
-            <div className="mt-6 flex gap-2">
-              <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-surface border border-border text-faint">India-led</span>
-              <span className="font-mono text-[10px] px-2.5 py-1 rounded-full bg-surface border border-border text-faint">Globally connected</span>
-            </div>
           </div>
-
-          <div>
-            <div className="font-mono text-[11px] tracking-wide uppercase text-faint mb-4">GPU Cloud</div>
-            <div className="space-y-2.5">
-              {GPU_NAV.map(g => (
-                <Link key={g.label} to={`/gpu/${g.slug}`} className="block text-[13.5px] text-muted hover:text-accent transition-colors">{g.label}</Link>
-              ))}
-              <Link to="/marketplace" className="block text-[13.5px] text-muted hover:text-accent transition-colors">Marketplace →</Link>
-            </div>
+          <div className="footer-col">
+            <h3 className="mono">Explore</h3>
+            {[
+              ['Our GPU offerings', '/#capacity'],
+              ['GPU comparison', '/resources#comparison'],
+              ['GPU Lab', '/gpu-lab'],
+              ['AI solutions', '/solutions'],
+              ['Find GPU Capacity', '/find-capacity']
+            ].map(([label, to]) => (
+              <Link to={to} key={to}>
+                {label}
+              </Link>
+            ))}
           </div>
-
-          <div>
-            <div className="font-mono text-[11px] tracking-wide uppercase text-faint mb-4">Solutions</div>
-            <div className="space-y-2.5">
-              {SOLUTIONS.map(s => (
-                <Link key={s.slug} to={`/solutions/${s.slug}`} className="block text-[13.5px] text-muted hover:text-accent transition-colors">{s.name.replace('AI ', '').replace(' Infrastructure', '')}</Link>
-              ))}
-            </div>
+          <div className="footer-col">
+            <h3 className="mono">Our expertise</h3>
+            {SERVICES.map((s) => (
+              <Link to={`/services#${s.id}`} key={s.id}>
+                {labels[s.id]}
+              </Link>
+            ))}
           </div>
-
-          <div>
-            <div className="font-mono text-[11px] tracking-wide uppercase text-faint mb-4">Services</div>
-            <div className="space-y-2.5">
-              {SERVICES.map(s => {
-                const short = { 'svc-sourcing': 'GPU Sourcing', 'svc-advisory': 'Advisory', 'svc-deployment': 'Cluster Deployment', 'svc-managed': 'Managed Infra' }[s.id] || s.name
-                return (
-                  <Link key={s.id} to={`/services#${s.id}`} className="block text-[13.5px] text-muted hover:text-accent transition-colors">{short}</Link>
-                )
-              })}
-            </div>
-          </div>
-
-          <div>
-            <div className="font-mono text-[11px] tracking-wide uppercase text-faint mb-4">Company</div>
-            <div className="space-y-2.5">
-              <Link to="/about" className="block text-[13.5px] text-muted hover:text-accent transition-colors">About Us</Link>
-              <Link to="/about#partners" className="block text-[13.5px] text-muted hover:text-accent transition-colors">Partners</Link>
-              <Link to="/contact" className="block text-[13.5px] text-muted hover:text-accent transition-colors">Contact</Link>
-              <Link to="/resources" className="block text-[13.5px] text-muted hover:text-accent transition-colors">Resources</Link>
-              <Link to="/find-capacity" className="block text-[13.5px] text-accent hover:underline transition-colors">Find GPU Capacity</Link>
-            </div>
+          <div className="footer-col">
+            <h3 className="mono">Start a conversation</h3>
+            <a href="mailto:hello@anthroprime.com">hello@anthroprime.com ↗</a>
+            <a
+              href="https://wa.me/919711554410"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              +91 97115 54410 ↗
+            </a>
+            <Link to="/about">Gurugram, India · Global reach</Link>
+            <Link to="/contact">Contact the desk</Link>
           </div>
         </div>
-
-        <div className="mt-16 pt-6 border-t border-border flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="font-mono text-[11px] text-faint">ANTHROPRIME TECHNOLOGY PRIVATE LIMITED · CIN U62099HR2026PTC146139</div>
-          <div className="flex items-center gap-6 font-mono text-[11px] text-faint">
-            <span>© 2026 Anthroprime AI Infrastructure Advisory</span>
-            <span className="hidden sm:inline">•</span>
-            <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" /> All systems operational</span>
-          </div>
+        <div className="footer-bottom mono">
+          <span>© 2026 Anthroprime Technology Private Limited</span>
+          <span>GPU infrastructure · Deployment · Managed services</span>
+          <a href="#top">
+            Back to top
+            <ArrowUp size={11} />
+          </a>
         </div>
       </div>
     </footer>
   )
 }
 
-/** Scroll restoration: top on route change; honor #hash anchors */
 export function ScrollManager() {
   const { pathname, hash } = useLocation()
+  const { paused } = useMotionSettings()
+  const pausedRef = useRef(paused)
+  pausedRef.current = paused
   useEffect(() => {
-    if (hash) {
-      const id = hash.slice(1)
-      // wait a tick for the page to render
-      const t = setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-      }, 80)
-      return () => clearTimeout(t)
+    if (!hash) {
+      window.scrollTo({ top: 0, behavior: 'instant' })
+      return
     }
-    window.scrollTo(0, 0)
+    let anchor = hash.slice(1)
+    try {
+      anchor = decodeURIComponent(anchor)
+    } catch {
+      /* Keep malformed fragments harmless. */
+    }
+    const scrollToAnchor = () => {
+      const target = document.getElementById(anchor)
+      if (!target) return false
+      target.scrollIntoView({
+        behavior: pausedRef.current ? 'instant' : 'smooth'
+      })
+      return true
+    }
+    if (scrollToAnchor()) return
+    // Lazy routes can arrive after the navigation effect. Wait for the target,
+    // rather than assuming that a fixed delay is enough on every connection.
+    const observer = new MutationObserver(() => {
+      if (scrollToAnchor()) observer.disconnect()
+    })
+    observer.observe(document.getElementById('main-content') || document.body, {
+      childList: true,
+      subtree: true
+    })
+    const timeout = setTimeout(() => observer.disconnect(), 10000)
+    return () => {
+      observer.disconnect()
+      clearTimeout(timeout)
+    }
   }, [pathname, hash])
   return null
 }
 
 export default function Layout() {
-  const { pathname } = useLocation()
   useDocumentMeta()
+  const { pathname } = useLocation()
+  const { paused } = useMotionSettings()
   return (
-    <div className="min-h-screen bg-bg relative overflow-x-hidden">
-      <div className="fixed inset-0 pointer-events-none" aria-hidden>
-        <div className="absolute inset-0 dot-pattern opacity-[0.15]" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-accent/5 rounded-full blur-[120px]" />
-        <div className="absolute top-[40%] right-0 w-[800px] h-[800px] bg-purple/5 rounded-full blur-[120px]" />
-      </div>
-
+    <div className="site-shell" id="top">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <ScrollProgress />
       <ScrollManager />
-
-      <div className="relative z-10">
-        <Navbar />
-        <motion.main key={pathname} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-          <Outlet />
-        </motion.main>
-        <Footer />
-      </div>
-
-      <BackToTop />
+      <Navbar />
+      <main id="main-content" tabIndex={-1}>
+        <motion.div
+          key={pathname}
+          initial={paused ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.25 }}
+        >
+          <Suspense
+            fallback={
+              <div
+                className="wrap"
+                style={{ minHeight: '60vh', paddingBlock: 80 }}
+                role="status"
+              >
+                <p className="eyebrow mono">Anthroprime / Loading</p>
+                <p className="text-muted mt-4">Preparing your page…</p>
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
+        </motion.div>
+      </main>
+      <Footer />
     </div>
   )
 }

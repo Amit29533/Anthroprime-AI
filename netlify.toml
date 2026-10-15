@@ -1,9 +1,10 @@
 [build]
-  command = "npm run build"
+  command = "npm run build && npm test"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "22"
+  SITE_URL = "https://anthroprime.ai"
 
 [[redirects]]
   from = "/*"
@@ -16,6 +17,7 @@
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
 
 [[headers]]
   for = "/assets/*"
