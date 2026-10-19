@@ -57,6 +57,14 @@ export function initialRequest(state = {}) {
       : DEFAULTS.deployType
   }
 }
+export function applyCapacitySelection(form, row) {
+  return {
+    ...form,
+    gpuType: normalizeGpu(row.gpu) || 'Not sure / need advice',
+    ...(row.quantity !== 'On request' ? { gpuQty: row.quantity } : {}),
+    ...(row.location !== 'On request' ? { location: row.location } : {})
+  }
+}
 export function buildBrief(form) {
   return [
     'GPU Capacity Request — Anthroprime.ai',

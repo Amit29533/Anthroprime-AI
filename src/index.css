@@ -2108,6 +2108,10 @@
 .capacity-request:hover {
   border-color: rgb(var(--c-accent));
 }
+.capacity-request:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
 .capacity-footnote {
   display: flex;
   justify-content: space-between;

@@ -6,12 +6,43 @@ import {
   isPublishedSheetUrl
 } from '../src/data/capacity-feed.js'
 import handler from '../netlify/functions/capacity.mjs'
-import { initialRequest } from '../src/data/request.js'
+import { initialRequest, applyCapacitySelection } from '../src/data/request.js'
 import { prepareCapacityRequest } from '../src/data/request-delivery.js'
 
 const header = 'gpu,quantity,location,term,ready\n'
 const source =
   'https://docs.google.com/spreadsheets/d/e/abc-123/pub?gid=0&output=csv'
+test('inline capacity selection preserves contact and workload details', () => {
+  const form = {
+    ...initialRequest(),
+    company: 'Customer',
+    email: 'customer@example.com',
+    workload: 'Training',
+    gpuQty: '32',
+    location: 'Europe'
+  }
+  const selected = applyCapacitySelection(
+    form,
+    DEFAULT_CAPACITY.find((row) => row.gpu === 'B300')
+  )
+  assert.deepEqual(selected, { ...form, gpuType: 'B300' })
+  assert.deepEqual(
+    applyCapacitySelection(form, {
+      gpu: 'H200 NVL',
+      quantity: '8',
+      location: 'India'
+    }),
+    { ...form, gpuType: 'H200 NVL', gpuQty: '8', location: 'India' }
+  )
+  assert.equal(
+    applyCapacitySelection(form, {
+      gpu: 'Custom GPU',
+      quantity: 'On request',
+      location: 'On request'
+    }).gpuType,
+    'Not sure / need advice'
+  )
+})
 test('default rows make no stock or location claims', () => {
   assert.equal(DEFAULT_CAPACITY.length, 14)
   assert.ok(

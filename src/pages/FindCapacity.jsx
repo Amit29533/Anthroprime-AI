@@ -12,10 +12,12 @@ import {
   LoaderCircle
 } from 'lucide-react'
 import { PageHero, Reveal } from '../components/ui'
+import CapacityTable from '../components/CapacityTable'
 import {
   GPU_OPTIONS,
   DEPLOY_OPTIONS,
   initialRequest,
+  applyCapacitySelection,
   buildBrief
 } from '../data/request'
 import {
@@ -99,6 +101,19 @@ export default function FindCapacity() {
     typeof window !== 'undefined' ? window.location.hostname : ''
   )
   const reviewRef = useRef(null)
+  const formRef = useRef(null)
+  const selectOffering = (row) => {
+    if (sendingRef.current || sent) return
+    setForm((current) => applyCapacitySelection(current, row))
+    setReview(null)
+    setReviewError('')
+    setDelivery('idle')
+    setDeliveryError('')
+    setConsent(false)
+    const field = formRef.current?.elements.namedItem('gpuType')
+    field?.focus({ preventScroll: true })
+    field?.scrollIntoView({ block: 'center' })
+  }
   useEffect(() => {
     setForm(initialRequest(state || {}))
     setReview(null)
@@ -200,6 +215,9 @@ export default function FindCapacity() {
         highlight="Starts with a brief."
         sub="A few details about your ambition. We’ll help find the infrastructure to match. From 8 GPUs to your next dedicated cluster."
       />
+      <section className="wrap pb-16" aria-label="Explore GPU capacity">
+        <CapacityTable onSelect={selectOffering} disabled={sending || sent} />
+      </section>
       <section className="pb-24">
         <div className="wrap request-layout">
           <Reveal className="request-sidebar">
@@ -250,6 +268,8 @@ export default function FindCapacity() {
           </Reveal>
           <div>
             <form
+              ref={formRef}
+              id="capacity-brief"
               className="capacity-form"
               name="gpu-capacity"
               method="POST"
