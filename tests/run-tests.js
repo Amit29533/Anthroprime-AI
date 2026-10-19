@@ -181,7 +181,7 @@ assert('Footer service labels are explicit (no replace chains)', layout.includes
 // ---------- executable data and request checks ----------
 assert('Every GPU detail has specs, variants, and reference configuration', GPU_ORDER.every(slug=>GPUS[slug]?.specs && GPUS[slug]?.variants.length && GPUS[slug]?.nodeConfig.rows.length))
 assert('All solution recommendations reference existing GPU pages', SOLUTIONS.every(s=>s.gpus.every(slug=>GPUS[slug])))
-for (const [input,expected] of [['B200','B200 / GB200'],['gb200','B200 / GB200'],['B300','B200 / GB200'],['MI300X','Enterprise Accelerators'],['h200','H200']]) {
+for (const [input,expected] of [['B200','B200 / GB200'],['gb200','B200 / GB200'],['B300','B300'],['MI300X','Enterprise Accelerators'],['h200','H200']]) {
   assert(`Request normalizes ${input}`, normalizeGpu(input) === expected)
 }
 assert('Unknown GPU aliases return null', normalizeGpu('unknown') === null)

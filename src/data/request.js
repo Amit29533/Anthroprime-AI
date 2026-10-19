@@ -1,9 +1,17 @@
 export const GPU_OPTIONS = [
   'H100',
+  'H100 SXM',
   'H200',
+  'H200 NVL',
+  'RTX PRO 6000',
+  'B300',
   'B200 / GB200',
   'A100',
+  'H100 / A100',
+  'Vera Rubin',
+  'L40 / L40G',
   'L40S',
+  'Dedicated build',
   'Enterprise Accelerators',
   'Not sure / need advice'
 ]
@@ -16,7 +24,7 @@ export const DEPLOY_OPTIONS = [
 const GPU_ALIASES = {
   B200: 'B200 / GB200',
   GB200: 'B200 / GB200',
-  B300: 'B200 / GB200',
+  'ANY, DEDICATED BUILD': 'Dedicated build',
   GB300: 'B200 / GB200',
   MI300X: 'Enterprise Accelerators',
   MI300: 'Enterprise Accelerators'

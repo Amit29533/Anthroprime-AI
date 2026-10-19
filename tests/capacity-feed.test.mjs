@@ -6,17 +6,57 @@ import {
   isPublishedSheetUrl
 } from '../src/data/capacity-feed.js'
 import handler from '../netlify/functions/capacity.mjs'
+import { initialRequest } from '../src/data/request.js'
+import { prepareCapacityRequest } from '../src/data/request-delivery.js'
 
 const header = 'gpu,quantity,location,term,ready\n'
 const source =
   'https://docs.google.com/spreadsheets/d/e/abc-123/pub?gid=0&output=csv'
 test('default rows make no stock or location claims', () => {
-  assert.equal(DEFAULT_CAPACITY.length, 6)
+  assert.equal(DEFAULT_CAPACITY.length, 14)
   assert.ok(
     DEFAULT_CAPACITY.every(
       (row) => row.quantity === 'On request' && row.location === 'On request'
     )
   )
+})
+test('all distinct first-table offerings are included and requestable', () => {
+  const offerings = [
+    'H100 SXM',
+    'H200 NVL',
+    'RTX PRO 6000',
+    'B300',
+    'H100',
+    'B200',
+    'H200',
+    'Any, dedicated build',
+    'H100 / A100',
+    'Vera Rubin',
+    'L40 / L40G'
+  ]
+  for (const gpu of offerings)
+    assert.ok(
+      DEFAULT_CAPACITY.some((row) => row.gpu === gpu),
+      gpu
+    )
+  for (const { gpu } of DEFAULT_CAPACITY) {
+    const request = initialRequest({ gpu })
+    const expected =
+      {
+        B200: 'B200 / GB200',
+        GB200: 'B200 / GB200',
+        'Any, dedicated build': 'Dedicated build'
+      }[gpu] || gpu
+    assert.equal(request.gpuType, expected)
+    const result = prepareCapacityRequest({
+      ...request,
+      gpuQty: '8',
+      location: 'To discuss',
+      company: 'Validation',
+      email: 'test@example.com'
+    })
+    assert.ok(result, gpu)
+  }
 })
 test('published Sheets CSV supports BOM, CRLF, commas, escaped quotes and newlines', () => {
   const rows = parseCapacityCsv(

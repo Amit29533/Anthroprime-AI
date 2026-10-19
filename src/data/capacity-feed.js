@@ -1,11 +1,19 @@
 // Public capacity only. Unconfirmed stock, regions and dates are never inferred.
 export const DEFAULT_CAPACITY = [
   'H200',
+  'H200 NVL',
   'H100',
+  'H100 SXM',
+  'RTX PRO 6000',
+  'B300',
   'B200',
   'GB200',
   'A100',
-  'L40S'
+  'H100 / A100',
+  'Vera Rubin',
+  'L40 / L40G',
+  'L40S',
+  'Any, dedicated build'
 ].map((gpu) => ({
   gpu,
   quantity: 'On request',

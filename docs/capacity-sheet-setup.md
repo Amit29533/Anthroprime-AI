@@ -1,6 +1,6 @@
 # Capacity page and Google Sheets
 
-The `/capacity` page shows six popular GPUs with unconfirmed details marked on request. It does not publish another provider's stock. It works without a spreadsheet.
+The `/capacity` page includes every distinct offering from the reference's first (Leased) table, alongside the existing GB200 and L40S options. Repeated inventory listings are consolidated into one row per offering, with unconfirmed details marked on request. It does not publish another provider's stock. It works without a spreadsheet.
 
 To manage the table without code, use **Google Sheets**, rather than a Google Doc. Only publish information intended for everyone visiting your website. Never put customer details, supplier contracts or internal notes in the published tab.
 
