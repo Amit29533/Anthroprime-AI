@@ -59,6 +59,7 @@ const navigation = [
     label: 'GPU Cloud',
     links: [
       { label: 'Our GPU offerings', to: '/#capacity' },
+        { label: 'Capacity overview', to: '/capacity' },
       ...GPU_NAV.map((g) => ({
         label: g.label || g.name || GPUS[g.slug]?.name,
         to: g.to || `/gpu/${g.slug}`
@@ -251,6 +252,7 @@ export function Navbar() {
           {[
             ['Home', '/'],
             ['GPU Cloud', '/#capacity'],
+              ['Capacity overview', '/capacity'],
             ['Solutions', '/solutions'],
             ['Services', '/services'],
             ['Resources', '/resources'],
@@ -296,6 +298,7 @@ export function Footer() {
             <h3 className="mono">Explore</h3>
             {[
               ['Our GPU offerings', '/#capacity'],
+                ['Capacity overview', '/capacity'],
               ['GPU comparison', '/resources#comparison'],
               ['GPU Lab', '/gpu-lab'],
               ['AI solutions', '/solutions'],

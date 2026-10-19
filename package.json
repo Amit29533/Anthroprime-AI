@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build && node scripts/build-pages.mjs",
     "preview": "vite preview",
-    "test": "node tests/run-tests.js"
+    "test": "node tests/run-tests.js && node --test tests/capacity-feed.test.mjs"
   },
   "engines": {
     "node": ">=22.12.0"

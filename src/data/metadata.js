@@ -2,6 +2,10 @@ import { GPUS } from './gpus.js'
 import { SOLUTIONS, solutionBySlug } from './solutions.js'
 
 export const PAGE_META = {
+  '/capacity': [
+    'GPU Capacity — Anthroprime.ai',
+    'Explore popular NVIDIA GPU capacity and request your configuration, region and deployment term directly from Anthroprime.'
+  ],
   '/gpu-lab': [
     'The GPU Lab — Explore, Experiment, Understand | Anthroprime.ai',
     'Explore GPU architecture, parallel processing, model memory, and AI workflows through interactive explainers from Anthroprime.'
