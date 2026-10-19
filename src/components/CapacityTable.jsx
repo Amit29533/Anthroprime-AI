@@ -33,7 +33,8 @@ export default function CapacityTable({ onSelect, disabled = false }) {
       const timeout = setTimeout(() => requestController.abort(), 10000)
       try {
         const response = await fetch('/.netlify/functions/capacity', {
-          signal: requestController.signal
+          signal: requestController.signal,
+          cache: 'no-store'
         })
         if (!response.ok) throw new Error('Capacity feed unavailable')
         const data = await response.json()
@@ -52,7 +53,7 @@ export default function CapacityTable({ onSelect, disabled = false }) {
       }
     }
     refresh()
-    const interval = setInterval(refresh, 60000)
+    const interval = setInterval(refresh, 30000)
     document.addEventListener('visibilitychange', refresh)
     return () => {
       active = false

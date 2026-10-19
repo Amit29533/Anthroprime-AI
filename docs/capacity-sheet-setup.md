@@ -12,7 +12,7 @@ To manage the table without code, use **Google Sheets**, rather than a Google Do
 6. In the Netlify project, add environment variable `CAPACITY_SHEET_CSV_URL` with that link, available to **Functions** in production. Redeploy once to activate it.
 7. Visit `/capacity`. The note below the table changes to “Capacity details refresh automatically.” Edit a cell in Sheets and verify it appears after Google's publishing delay and the website refresh interval.
 
-After connection, edits need no GitHub commit or deployment. The website checks every 60 seconds while the page is visible; Google may take a few minutes to publish edits. Netlify also caches the feed for up to 60 seconds. This is a periodically refreshed table, not a real-time stock reservation system.
+After connection, edits need no GitHub commit or deployment. The website checks every 30 seconds while the page is visible. Browsers do not cache the feed; Netlify caches it for up to 15 seconds. The function rotates its Google CSV request URL every 30 seconds to reduce stale upstream responses. Google still controls when edits are published and may take a few minutes. This is a periodically refreshed table, not a real-time stock reservation system.
 
 Rows must have all five cells filled, with a maximum of 120 characters per cell and 100 rows total. To show that inventory needs confirmation, keep a row with “On request” details: an empty feed is treated as a configuration error. Remove the environment variable and redeploy to return to the default overview.
 

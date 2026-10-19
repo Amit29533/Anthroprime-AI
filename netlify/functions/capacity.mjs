@@ -14,7 +14,17 @@ export default async function handler(request) {
     )
   try {
     if (!isPublishedSheetUrl(source)) throw new Error('Invalid sheet URL')
-    const response = await fetch(source, { signal: AbortSignal.timeout(5000) })
+    // Rotate the published URL to avoid repeatedly receiving an older Google
+    // cache entry. Google still controls when edits are actually published.
+    const upstream = new URL(source)
+    upstream.searchParams.set(
+      '_refresh',
+      String(Math.floor(Date.now() / 30000))
+    )
+    const response = await fetch(upstream, {
+      signal: AbortSignal.timeout(5000),
+      cache: 'no-store'
+    })
     if (!response.ok) throw new Error('Sheet unavailable')
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
@@ -35,7 +45,10 @@ export default async function handler(request) {
     return Response.json(
       { configured: true, rows: parseCapacityCsv(csv) },
       {
-        headers: { 'Cache-Control': 'public, max-age=60, s-maxage=60' }
+        headers: {
+          'Cache-Control': 'no-store',
+          'Netlify-CDN-Cache-Control': 'public, max-age=15, must-revalidate'
+        }
       }
     )
   } catch {

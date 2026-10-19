@@ -147,10 +147,25 @@ test('function handles missing config, validated data and upstream failures with
       rows: []
     })
     process.env.CAPACITY_SHEET_CSV_URL = source
-    globalThis.fetch = async () =>
-      new Response(header + 'H100,8,India,Reserved,On request')
+    globalThis.fetch = async (url, options) => {
+      const upstream = new URL(url)
+      assert.equal(
+        upstream.origin + upstream.pathname,
+        new URL(source).origin + new URL(source).pathname
+      )
+      assert.equal(upstream.searchParams.get('gid'), '0')
+      assert.equal(upstream.searchParams.get('output'), 'csv')
+      assert.match(upstream.searchParams.get('_refresh'), /^\d+$/)
+      assert.equal(options.cache, 'no-store')
+      return new Response(header + 'H100,8,India,Reserved,On request')
+    }
     const response = await handler(request)
     assert.equal(response.status, 200)
+    assert.equal(response.headers.get('Cache-Control'), 'no-store')
+    assert.equal(
+      response.headers.get('Netlify-CDN-Cache-Control'),
+      'public, max-age=15, must-revalidate'
+    )
     assert.equal((await response.json()).rows[0].quantity, '8')
     globalThis.fetch = async () => new Response('Error', { status: 500 })
     assert.equal((await handler(request)).status, 503)
